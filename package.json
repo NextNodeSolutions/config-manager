@@ -4,6 +4,7 @@
 	"description": "A TypeScript server library for Nextnode Functions, designed to simplify function execution and API interactions.",
 	"keywords": ["api", "functions", "nextnode", "server", "typescript"],
 	"license": "ISC",
+	"author": "Nextnode",
 	"main": "./dist/index.js",
 	"scripts": {
 		"changeset": "changeset",

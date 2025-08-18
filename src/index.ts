@@ -3,7 +3,7 @@
  * Server library for Nextnode Functions
  */
 
-export * from './formatting/date.js'
+export * from './formatting/date'
 
 // Configuration Management System
-export * from './config/index.js'
+export * from './config/index'

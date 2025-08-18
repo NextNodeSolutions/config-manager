@@ -1,3 +1,10 @@
+import { VALID_ENVIRONMENTS, ENV_VARS } from './constants'
+import {
+	InvalidEnvironmentError,
+	AppEnvRequiredError,
+	AppEnvUnavailableError,
+} from './errors'
+
 import type { ConfigObject, ConfigValue } from './types'
 
 /**
@@ -50,6 +57,11 @@ export function getNestedValue<T = ConfigValue>(
 		} else {
 			return undefined
 		}
+	}
+
+	// Return undefined for null values to maintain type safety
+	if (current === null || current === undefined) {
+		return undefined
 	}
 
 	return current as T
@@ -121,19 +133,18 @@ export function validateConfig(config: unknown): config is ConfigObject {
  */
 export function getCurrentEnvironment(): string {
 	if (typeof process !== 'undefined') {
-		const appEnv = process.env.APP_ENV
+		const appEnv = process.env[ENV_VARS.APP_ENV]
 
 		if (!appEnv) {
-			throw new Error(
-				'APP_ENV environment variable is required. Valid values: LOCAL, DEV, PROD',
-			)
+			throw new AppEnvRequiredError()
 		}
 
-		const validEnvironments = ['LOCAL', 'DEV', 'PROD', 'TEST']
-		if (!validEnvironments.includes(appEnv)) {
-			throw new Error(
-				`Invalid APP_ENV value: ${appEnv}. Valid values: ${validEnvironments.join(', ')}`,
+		if (
+			!VALID_ENVIRONMENTS.includes(
+				appEnv as (typeof VALID_ENVIRONMENTS)[number],
 			)
+		) {
+			throw new InvalidEnvironmentError(appEnv, VALID_ENVIRONMENTS)
 		}
 
 		// Convert to lowercase for file matching
@@ -141,9 +152,7 @@ export function getCurrentEnvironment(): string {
 	}
 
 	// Browser environment - throw error as APP_ENV is mandatory
-	throw new Error(
-		'APP_ENV is required but not available in browser environment',
-	)
+	throw new AppEnvUnavailableError()
 }
 
 /**

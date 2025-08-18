@@ -37,7 +37,28 @@ export interface RootConfig {
 	app: AppConfig
 }
 
-export type ConfigPath = string | string[]
+/**
+ * Known configuration paths for better type safety and autocomplete
+ */
+type KnownConfigPaths =
+	| 'email'
+	| 'email.from'
+	| 'email.to'
+	| 'email.provider'
+	| 'email.replyTo'
+	| 'email.templates'
+	| 'email.templates.projectRequest'
+	| 'email.templates.projectRequest.subject'
+	| 'email.templates.projectRequest.companyName'
+	| 'email.templates.projectRequest.websiteUrl'
+	| 'email.templates.projectRequest.companyLogo'
+	| 'app'
+	| 'app.name'
+	| 'app.version'
+	| 'app.features'
+	| 'app.environment'
+
+export type ConfigPath = KnownConfigPaths | string | string[]
 
 export interface ConfigOptions {
 	environment?: string

@@ -12,6 +12,26 @@ import type {
 let globalLoader: ConfigLoader | null = null
 
 /**
+ * Ensure global loader is initialized with default options if not already present
+ * @returns The global ConfigLoader instance
+ */
+function ensureGlobalLoader(): ConfigLoader {
+	if (!globalLoader) {
+		globalLoader = new ConfigLoader()
+	}
+	return globalLoader
+}
+
+/**
+ * Resolve environment parameter, falling back to current environment
+ * @param environment - Optional environment override
+ * @returns Resolved environment string
+ */
+function resolveEnvironment(environment?: string): string {
+	return environment || getCurrentEnvironment()
+}
+
+/**
  * Initialize the configuration system
  */
 export function initConfig(options: ConfigOptions = {}): void {
@@ -41,12 +61,9 @@ export function getConfig<T = ConfigValue>(
 	path?: ConfigPath,
 	environment?: string,
 ): T | undefined {
-	// Initialize with default options if not already initialized
-	if (!globalLoader) {
-		globalLoader = new ConfigLoader()
-	}
-
-	const config = globalLoader.loadConfig(environment)
+	const loader = ensureGlobalLoader()
+	const resolvedEnv = resolveEnvironment(environment)
+	const config = loader.loadConfig(resolvedEnv)
 
 	// Return entire config if no path specified
 	if (!path) {
@@ -64,14 +81,14 @@ export function getTypedConfig<T extends keyof RootConfig>(
 	path: T,
 	environment?: string,
 ): RootConfig[T] | undefined {
-	return getConfig<RootConfig[T]>(path, environment)
+	return getConfig<RootConfig[T]>(path, resolveEnvironment(environment))
 }
 
 /**
  * Check if a configuration path exists
  */
 export function hasConfig(path: ConfigPath, environment?: string): boolean {
-	return getConfig(path, environment) !== undefined
+	return getConfig(path, resolveEnvironment(environment)) !== undefined
 }
 
 /**
@@ -94,11 +111,8 @@ export function clearConfigCache(): void {
  * Get all available configuration environments
  */
 export function getAvailableEnvironments(): string[] {
-	if (!globalLoader) {
-		globalLoader = new ConfigLoader()
-	}
-
-	return globalLoader.getAvailableConfigs()
+	const loader = ensureGlobalLoader()
+	return loader.getAvailableConfigs()
 }
 
 /**
@@ -108,10 +122,11 @@ export function validateRequiredConfig(
 	requiredPaths: ConfigPath[],
 	environment?: string,
 ): { valid: boolean; missing: ConfigPath[] } {
+	const resolvedEnv = resolveEnvironment(environment)
 	const missing: ConfigPath[] = []
 
 	for (const path of requiredPaths) {
-		if (!hasConfig(path, environment)) {
+		if (!hasConfig(path, resolvedEnv)) {
 			missing.push(path)
 		}
 	}
@@ -136,3 +151,23 @@ export type {
 // Re-export utilities for advanced usage
 export { deepMerge, getNestedValue, setNestedValue } from './utils'
 export { ConfigLoader } from './loader'
+
+// Re-export error classes for error handling
+export {
+	ConfigError,
+	ConfigNotFoundError,
+	InvalidEnvironmentError,
+	InvalidConfigFormatError,
+	InvalidJsonSyntaxError,
+	DefaultConfigMissingError,
+	AppEnvRequiredError,
+	AppEnvUnavailableError,
+} from './errors'
+
+// Re-export constants for external usage
+export {
+	DEFAULT_CONFIG_DIR,
+	VALID_ENVIRONMENTS,
+	ERROR_CODES,
+	ENV_VARS,
+} from './constants'

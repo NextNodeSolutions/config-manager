@@ -2,6 +2,16 @@ import { readFileSync, existsSync, readdirSync } from 'fs'
 import { join } from 'path'
 
 import { deepMerge, validateConfig, getCurrentEnvironment } from './utils'
+import {
+	DEFAULT_CONFIG_DIR,
+	FILE_EXTENSIONS,
+	CONFIG_CACHE_PREFIX,
+} from './constants'
+import {
+	DefaultConfigMissingError,
+	InvalidConfigFormatError,
+	InvalidJsonSyntaxError,
+} from './errors'
 
 import type { ConfigObject, ConfigOptions } from './types'
 
@@ -12,9 +22,10 @@ export class ConfigLoader {
 	private cache = new Map<string, ConfigObject>()
 	private configDir: string
 	private useCache: boolean
+	private availableConfigsCache: string[] | null = null
 
 	constructor(options: ConfigOptions = {}) {
-		this.configDir = options.configDir || this.getDefaultConfigDir()
+		this.configDir = options.configDir || DEFAULT_CONFIG_DIR
 		this.useCache = options.cache ?? true
 	}
 
@@ -23,7 +34,7 @@ export class ConfigLoader {
 	 */
 	loadConfig(environment?: string): ConfigObject {
 		const env = environment || getCurrentEnvironment()
-		const cacheKey = `config_${env}`
+		const cacheKey = this.generateCacheKey(env)
 
 		// Return cached config if available
 		if (this.useCache && this.cache.has(cacheKey)) {
@@ -53,13 +64,14 @@ export class ConfigLoader {
 	 * Load a specific configuration file
 	 */
 	private loadConfigFile(filename: string): ConfigObject {
-		const configPath = join(this.configDir, `${filename}.json`)
+		const configPath = join(
+			this.configDir,
+			`${filename}${FILE_EXTENSIONS.JSON}`,
+		)
 
 		if (!existsSync(configPath)) {
 			if (filename === 'default') {
-				throw new Error(
-					`Default configuration file not found at ${configPath}. Please create a default.json file in the config directory.`,
-				)
+				throw new DefaultConfigMissingError(configPath)
 			}
 			// Return empty object if environment-specific config doesn't exist
 			return {}
@@ -70,17 +82,13 @@ export class ConfigLoader {
 			const parsedConfig = JSON.parse(configContent)
 
 			if (!validateConfig(parsedConfig)) {
-				throw new Error(
-					`Invalid configuration format in ${configPath}. Expected a JSON object.`,
-				)
+				throw new InvalidConfigFormatError(configPath)
 			}
 
 			return parsedConfig
 		} catch (error) {
 			if (error instanceof SyntaxError) {
-				throw new Error(
-					`Invalid JSON syntax in ${configPath}: ${error.message}`,
-				)
+				throw new InvalidJsonSyntaxError(configPath, error.message)
 			}
 			throw error
 		}
@@ -91,26 +99,26 @@ export class ConfigLoader {
 	 */
 	clearCache(): void {
 		this.cache.clear()
+		this.availableConfigsCache = null
 	}
 
 	/**
-	 * Get the default configuration directory path
+	 * Generate a robust cache key that includes environment and config directory
+	 * to avoid collisions between different loader instances
 	 */
-	private getDefaultConfigDir(): string {
-		// For Node.js environments
-		if (typeof process !== 'undefined' && process.cwd) {
-			return join(process.cwd(), 'config')
-		}
-
-		// Fallback for other environments
-		return './config'
+	private generateCacheKey(environment: string): string {
+		const safeDirPath = this.configDir.replace(/[^\w]/g, '_')
+		return `${CONFIG_CACHE_PREFIX}${environment}_${safeDirPath}`
 	}
 
 	/**
 	 * Check if configuration file exists
 	 */
 	hasConfigFile(filename: string): boolean {
-		const configPath = join(this.configDir, `${filename}.json`)
+		const configPath = join(
+			this.configDir,
+			`${filename}${FILE_EXTENSIONS.JSON}`,
+		)
 		return existsSync(configPath)
 	}
 
@@ -118,12 +126,18 @@ export class ConfigLoader {
 	 * Get available configuration files
 	 */
 	getAvailableConfigs(): string[] {
+		if (this.availableConfigsCache !== null) {
+			return this.availableConfigsCache
+		}
+
 		try {
-			return readdirSync(this.configDir)
-				.filter(file => file.endsWith('.json'))
-				.map(file => file.replace('.json', ''))
+			this.availableConfigsCache = readdirSync(this.configDir)
+				.filter(file => file.endsWith(FILE_EXTENSIONS.JSON))
+				.map(file => file.replace(FILE_EXTENSIONS.JSON, ''))
+			return this.availableConfigsCache
 		} catch {
-			return []
+			this.availableConfigsCache = []
+			return this.availableConfigsCache
 		}
 	}
 }

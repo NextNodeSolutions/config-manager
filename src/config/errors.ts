@@ -103,13 +103,13 @@ export class AppEnvUnavailableError extends ConfigError {
 }
 
 /**
- * Error thrown when configDir is required but not provided
+ * Error thrown when configuration directory is not found
  */
-export class ConfigDirRequiredError extends ConfigError {
-	constructor() {
+export class ConfigDirNotFoundError extends ConfigError {
+	constructor(configDir: string) {
 		super(
-			'configDir is required. Please provide a valid configuration directory path in ConfigOptions.',
-			ERROR_CODES.CONFIG_DIR_REQUIRED,
+			`Configuration directory not found: ${configDir}. Please ensure the directory exists or specify a valid configDir in ConfigOptions.`,
+			ERROR_CODES.CONFIG_DIR_NOT_FOUND,
 		)
 	}
 }

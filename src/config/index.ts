@@ -1,25 +1,23 @@
 import { ConfigLoader } from './loader'
 import { getNestedValue, getCurrentEnvironment } from './utils'
-import { ConfigDirRequiredError } from './errors'
 
 import type {
 	ConfigValue,
 	ConfigPath,
 	ConfigOptions,
-	RootConfig,
+	BaseConfigSchema,
 } from './types'
 
 // Global configuration loader instance
 let globalLoader: ConfigLoader | null = null
 
 /**
- * Ensure global loader is initialized - throws error if not initialized
+ * Ensure global loader is initialized with default options if not already present
  * @returns The global ConfigLoader instance
- * @throws {ConfigDirRequiredError} When no global loader has been initialized
  */
 function ensureGlobalLoader(): ConfigLoader {
 	if (!globalLoader) {
-		throw new ConfigDirRequiredError()
+		globalLoader = new ConfigLoader()
 	}
 	return globalLoader
 }
@@ -41,7 +39,7 @@ export function initConfig(options: ConfigOptions = {}): void {
 }
 
 /**
- * Get configuration value using dot notation
+ * Get configuration value with automatic type inference
  *
  * @param path - Configuration path (e.g., 'email.from', 'app.name')
  * @param environment - Optional environment override
@@ -49,18 +47,19 @@ export function initConfig(options: ConfigOptions = {}): void {
  *
  * @example
  * ```typescript
- * // Get email configuration
- * const emailConfig = getConfig<EmailConfig>('email')
+ * // Get entire config
+ * const config = getConfig()
  *
- * // Get specific email value
- * const fromEmail = getConfig<string>('email.from')
+ * // Get specific values with path
+ * const emailFrom = getConfig('email.from')
+ * const appFeatures = getConfig('app.features')
  *
- * // Get array value
- * const features = getConfig<string[]>('app.features')
+ * // With type override
+ * const customConfig = getConfig<MyCustomType>('custom.path')
  * ```
  */
 export function getConfig<T = ConfigValue>(
-	path?: ConfigPath,
+	path?: string | string[],
 	environment?: string,
 ): T | undefined {
 	const loader = ensureGlobalLoader()
@@ -77,19 +76,12 @@ export function getConfig<T = ConfigValue>(
 }
 
 /**
- * Get configuration with type safety for the root config
- */
-export function getTypedConfig<T extends keyof RootConfig>(
-	path: T,
-	environment?: string,
-): RootConfig[T] | undefined {
-	return getConfig<RootConfig[T]>(path, resolveEnvironment(environment))
-}
-
-/**
  * Check if a configuration path exists
  */
-export function hasConfig(path: ConfigPath, environment?: string): boolean {
+export function hasConfig<TSchema extends BaseConfigSchema = BaseConfigSchema>(
+	path: ConfigPath<TSchema> | string | string[],
+	environment?: string,
+): boolean {
 	return getConfig(path, resolveEnvironment(environment)) !== undefined
 }
 
@@ -110,14 +102,6 @@ export function clearConfigCache(): void {
 }
 
 /**
- * Reset global loader (useful for testing)
- * @internal
- */
-export function resetGlobalLoader(): void {
-	globalLoader = null
-}
-
-/**
  * Get all available configuration environments
  */
 export function getAvailableEnvironments(): string[] {
@@ -128,12 +112,14 @@ export function getAvailableEnvironments(): string[] {
 /**
  * Validate that required configuration paths exist
  */
-export function validateRequiredConfig(
-	requiredPaths: ConfigPath[],
+export function validateRequiredConfig<
+	TSchema extends BaseConfigSchema = BaseConfigSchema,
+>(
+	requiredPaths: (ConfigPath<TSchema> | string | string[])[],
 	environment?: string,
-): { valid: boolean; missing: ConfigPath[] } {
+): { valid: boolean; missing: (ConfigPath<TSchema> | string | string[])[] } {
 	const resolvedEnv = resolveEnvironment(environment)
-	const missing: ConfigPath[] = []
+	const missing: (ConfigPath<TSchema> | string | string[])[] = []
 
 	for (const path of requiredPaths) {
 		if (!hasConfig(path, resolvedEnv)) {
@@ -153,9 +139,7 @@ export type {
 	ConfigValue,
 	ConfigPath,
 	ConfigOptions,
-	EmailConfig,
-	AppConfig,
-	RootConfig,
+	BaseConfigSchema,
 } from './types'
 
 // Re-export utilities for advanced usage
@@ -172,7 +156,7 @@ export {
 	DefaultConfigMissingError,
 	AppEnvRequiredError,
 	AppEnvUnavailableError,
-	ConfigDirRequiredError,
+	ConfigDirNotFoundError,
 } from './errors'
 
 // Re-export constants for external usage

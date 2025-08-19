@@ -7,7 +7,7 @@ import {
 	DefaultConfigMissingError,
 	InvalidConfigFormatError,
 	InvalidJsonSyntaxError,
-	ConfigDirRequiredError,
+	ConfigDirNotFoundError,
 } from './errors'
 
 import type { ConfigObject, ConfigOptions } from './types'
@@ -22,10 +22,14 @@ export class ConfigLoader {
 	private availableConfigsCache: string[] | null = null
 
 	constructor(options: ConfigOptions = {}) {
-		if (!options.configDir) {
-			throw new ConfigDirRequiredError()
+		// Use provided configDir or default to process.cwd() + '/config'
+		this.configDir = options.configDir || join(process.cwd(), 'config')
+
+		// Verify the configuration directory exists
+		if (!existsSync(this.configDir)) {
+			throw new ConfigDirNotFoundError(this.configDir)
 		}
-		this.configDir = options.configDir
+
 		this.useCache = options.cache ?? true
 	}
 

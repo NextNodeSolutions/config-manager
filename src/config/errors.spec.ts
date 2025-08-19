@@ -9,7 +9,7 @@ import {
 	DefaultConfigMissingError,
 	AppEnvRequiredError,
 	AppEnvUnavailableError,
-	ConfigDirRequiredError,
+	ConfigDirNotFoundError,
 } from './errors'
 import { ERROR_CODES } from './constants'
 
@@ -212,21 +212,24 @@ describe('AppEnvUnavailableError', () => {
 	})
 })
 
-describe('ConfigDirRequiredError', () => {
-	it('should create error with config directory required message', () => {
-		const error = new ConfigDirRequiredError()
+describe('ConfigDirNotFoundError', () => {
+	it('should create error with config directory not found message', () => {
+		const configDir = '/path/to/config'
+		const error = new ConfigDirNotFoundError(configDir)
 
 		expect(error.name).toBe('ConfigError')
 		expect(error.message).toBe(
-			'configDir is required. Please provide a valid configuration directory path in ConfigOptions.',
+			'Configuration directory not found: /path/to/config. Please ensure the directory exists or specify a valid configDir in ConfigOptions.',
 		)
-		expect(error.code).toBe(ERROR_CODES.CONFIG_DIR_REQUIRED)
+		expect(error.code).toBe(ERROR_CODES.CONFIG_DIR_NOT_FOUND)
 		expect(error).toBeInstanceOf(ConfigError)
 	})
 
-	it('should not accept any parameters', () => {
-		const error = new ConfigDirRequiredError()
+	it('should require configDir parameter', () => {
+		const configDir = './config'
+		const error = new ConfigDirNotFoundError(configDir)
 
+		expect(error.message).toContain(configDir)
 		expect(error.path).toBeUndefined()
 	})
 })
@@ -241,7 +244,7 @@ describe('Error inheritance', () => {
 			new DefaultConfigMissingError('/path/default.json'),
 			new AppEnvRequiredError(),
 			new AppEnvUnavailableError(),
-			new ConfigDirRequiredError(),
+			new ConfigDirNotFoundError('/path/config'),
 		]
 
 		for (const error of errors) {

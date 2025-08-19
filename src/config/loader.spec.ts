@@ -8,7 +8,7 @@ import {
 	DefaultConfigMissingError,
 	InvalidConfigFormatError,
 	InvalidJsonSyntaxError,
-	ConfigDirRequiredError,
+	ConfigDirNotFoundError,
 } from './errors'
 
 import type { ConfigOptions } from './types'
@@ -29,9 +29,19 @@ describe('ConfigLoader', () => {
 	})
 
 	describe('constructor', () => {
-		it('should throw error when configDir not provided', () => {
-			expect(() => new ConfigLoader()).toThrow(ConfigDirRequiredError)
-			expect(() => new ConfigLoader({})).toThrow(ConfigDirRequiredError)
+		it('should throw error when default config directory does not exist', () => {
+			// Mock process.cwd to return a path without a config directory
+			const originalCwd = process.cwd
+			process.cwd = (): string => '/non-existent-path'
+
+			try {
+				expect(() => new ConfigLoader()).toThrow(ConfigDirNotFoundError)
+				expect(() => new ConfigLoader({})).toThrow(
+					ConfigDirNotFoundError,
+				)
+			} finally {
+				process.cwd = originalCwd
+			}
 		})
 
 		it('should use provided config directory', () => {
@@ -266,13 +276,13 @@ describe('ConfigLoader', () => {
 			expect(configs.length).toBe(3)
 		})
 
-		it('should return empty array for non-existent config directory', () => {
-			const invalidLoader = new ConfigLoader({
-				configDir: '/non-existent-directory',
-			})
-
-			const configs = invalidLoader.getAvailableConfigs()
-			expect(configs).toEqual([])
+		it('should throw error for non-existent config directory', () => {
+			expect(
+				() =>
+					new ConfigLoader({
+						configDir: '/non-existent-directory',
+					}),
+			).toThrow(ConfigDirNotFoundError)
 		})
 
 		it('should cache available configs result', () => {

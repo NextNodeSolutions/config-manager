@@ -10,55 +10,41 @@ export type ConfigValue =
 	| ConfigValue[]
 	| ConfigObject
 
-export interface EmailConfig {
-	provider: 'resend' | 'nodemailer'
-	from: string
-	to: string
-	replyTo?: string
-	templates: {
-		projectRequest: {
-			subject: string
-			companyName: string
-			websiteUrl: string
-			companyLogo?: string
-		}
-	}
-}
-
-export interface AppConfig {
-	name: string
-	version: string
-	features: string[]
-	environment: string
-}
-
-export interface RootConfig {
-	email: EmailConfig
-	app: AppConfig
-}
+/**
+ * Utility type to extract all possible string paths from a nested object type
+ * Supports dot notation like 'email.from', 'app.name', etc.
+ */
+export type ConfigPath<T = ConfigObject> = T extends Record<string, unknown>
+	? {
+			[K in keyof T]: K extends string
+				? T[K] extends Record<string, unknown>
+					? K | `${K}.${ConfigPath<T[K]>}`
+					: K
+				: never
+		}[keyof T]
+	: string
 
 /**
- * Known configuration paths for better type safety and autocomplete
+ * Utility type to get the value type at a specific path in a nested object
+ * Used to infer the return type of getConfig based on the path parameter
  */
-type KnownConfigPaths =
-	| 'email'
-	| 'email.from'
-	| 'email.to'
-	| 'email.provider'
-	| 'email.replyTo'
-	| 'email.templates'
-	| 'email.templates.projectRequest'
-	| 'email.templates.projectRequest.subject'
-	| 'email.templates.projectRequest.companyName'
-	| 'email.templates.projectRequest.websiteUrl'
-	| 'email.templates.projectRequest.companyLogo'
-	| 'app'
-	| 'app.name'
-	| 'app.version'
-	| 'app.features'
-	| 'app.environment'
+export type PathValue<T, P extends string> = P extends keyof T
+	? T[P]
+	: P extends `${infer K}.${infer R}`
+		? K extends keyof T
+			? T[K] extends Record<string, unknown>
+				? PathValue<T[K], R>
+				: never
+			: never
+		: never
 
-export type ConfigPath = KnownConfigPaths | string | string[]
+/**
+ * Base configuration schema that can be extended by projects
+ * Provides a foundation for type inference while remaining flexible
+ */
+export interface BaseConfigSchema {
+	[key: string]: ConfigValue
+}
 
 export interface ConfigOptions {
 	environment?: string

@@ -6,17 +6,14 @@ import { tmpdir } from 'os'
 import {
 	initConfig,
 	getConfig,
-	getTypedConfig,
 	hasConfig,
 	getEnvironment,
 	clearConfigCache,
 	getAvailableEnvironments,
 	validateRequiredConfig,
-	ConfigDirRequiredError,
-	resetGlobalLoader,
 } from './index'
 
-import type { RootConfig, ConfigOptions } from './types'
+import type { ConfigOptions } from './types'
 
 describe('Configuration API', () => {
 	let tempDir: string
@@ -55,9 +52,19 @@ describe('Configuration API', () => {
 			expect(() => initConfig(options)).not.toThrow()
 		})
 
-		it('should throw error when no configDir provided', () => {
-			expect(() => initConfig()).toThrow(ConfigDirRequiredError)
-			expect(() => initConfig({})).toThrow(ConfigDirRequiredError)
+		it('should work with default config directory when it exists', () => {
+			// Create a config directory in current working directory for this test
+			const configDir = join(process.cwd(), 'config')
+			if (!existsSync(configDir)) {
+				mkdirSync(configDir, { recursive: true })
+				writeFileSync(
+					join(configDir, 'default.json'),
+					'{"app": {"name": "TestApp"}}',
+				)
+			}
+
+			expect(() => initConfig()).not.toThrow()
+			expect(() => initConfig({})).not.toThrow()
 		})
 
 		it('should replace existing global loader', () => {
@@ -169,59 +176,6 @@ describe('Configuration API', () => {
 		})
 	})
 
-	describe('getTypedConfig', () => {
-		beforeEach(() => {
-			const defaultConfig: RootConfig = {
-				app: {
-					name: 'TestApp',
-					version: '1.0.0',
-				},
-				email: {
-					from: 'test@example.com',
-					templates: {
-						welcome: {
-							subject: 'Welcome!',
-							body: 'Hello there',
-						},
-					},
-				},
-			}
-
-			writeFileSync(
-				join(tempDir, 'default.json'),
-				JSON.stringify(defaultConfig, null, 2),
-			)
-
-			initConfig({ configDir: tempDir })
-		})
-
-		it('should get typed configuration sections', () => {
-			const appConfig = getTypedConfig('app')
-			const emailConfig = getTypedConfig('email')
-
-			expect(appConfig?.name).toBe('TestApp')
-			expect(appConfig?.version).toBe('1.0.0')
-			expect(emailConfig?.from).toBe('test@example.com')
-		})
-
-		it('should return undefined for non-existent top-level keys', () => {
-			// @ts-expect-error - Testing invalid key
-			const nonExistent = getTypedConfig('nonexistent')
-			expect(nonExistent).toBeUndefined()
-		})
-
-		it('should work with environment override', () => {
-			const testConfig = { app: { name: 'TestApp-Test' } }
-			writeFileSync(
-				join(tempDir, 'test.json'),
-				JSON.stringify(testConfig, null, 2),
-			)
-
-			const appConfig = getTypedConfig('app', 'test')
-			expect(appConfig?.name).toBe('TestApp-Test')
-		})
-	})
-
 	describe('hasConfig', () => {
 		beforeEach(() => {
 			const defaultConfig = {
@@ -319,12 +273,12 @@ describe('Configuration API', () => {
 			expect(environments.length).toBe(4)
 		})
 
-		it('should throw error without explicit initialization', () => {
-			resetGlobalLoader()
+		it('should work without explicit initialization using default config dir', () => {
+			clearConfigCache()
 
-			expect(() => getAvailableEnvironments()).toThrow(
-				ConfigDirRequiredError,
-			)
+			// This should work now because ensureGlobalLoader creates a loader automatically
+			// It will use process.cwd() + '/config' by default
+			expect(() => getAvailableEnvironments()).not.toThrow()
 		})
 	})
 

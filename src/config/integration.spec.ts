@@ -5,7 +5,6 @@ import { fileURLToPath } from 'url'
 import {
 	initConfig,
 	getConfig,
-	getTypedConfig,
 	hasConfig,
 	getEnvironment,
 	clearConfigCache,
@@ -93,9 +92,9 @@ describe('Configuration Integration Tests', () => {
 			process.env.APP_ENV = 'TEST'
 		})
 
-		it('should provide type-safe access to configuration sections', () => {
-			const appConfig = getTypedConfig('app')
-			const emailConfig = getTypedConfig('email')
+		it('should provide access to configuration sections', () => {
+			const appConfig = getConfig('app')
+			const emailConfig = getConfig('email')
 
 			expect(appConfig?.name).toBe('NextNode Functions Server')
 			expect(appConfig?.features).toEqual(['config'])
@@ -106,8 +105,8 @@ describe('Configuration Integration Tests', () => {
 		})
 
 		it('should work with different environments', () => {
-			const prodAppConfig = getTypedConfig('app', 'prod')
-			const devEmailConfig = getTypedConfig('email', 'dev')
+			const prodAppConfig = getConfig('app', 'prod')
+			const devEmailConfig = getConfig('email', 'dev')
 
 			expect(prodAppConfig?.debug).toBe(false)
 			expect(prodAppConfig?.features).toContain('monitoring')

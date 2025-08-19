@@ -8,6 +8,7 @@ import {
 	DefaultConfigMissingError,
 	InvalidConfigFormatError,
 	InvalidJsonSyntaxError,
+	ConfigDirRequiredError,
 } from './errors'
 
 import type { ConfigOptions } from './types'
@@ -28,9 +29,9 @@ describe('ConfigLoader', () => {
 	})
 
 	describe('constructor', () => {
-		it('should use default options when none provided', () => {
-			loader = new ConfigLoader()
-			expect(loader).toBeInstanceOf(ConfigLoader)
+		it('should throw error when configDir not provided', () => {
+			expect(() => new ConfigLoader()).toThrow(ConfigDirRequiredError)
+			expect(() => new ConfigLoader({})).toThrow(ConfigDirRequiredError)
 		})
 
 		it('should use provided config directory', () => {
@@ -40,7 +41,7 @@ describe('ConfigLoader', () => {
 		})
 
 		it('should respect cache option', () => {
-			const options: ConfigOptions = { cache: false }
+			const options: ConfigOptions = { configDir: tempDir, cache: false }
 			loader = new ConfigLoader(options)
 			expect(loader).toBeInstanceOf(ConfigLoader)
 		})

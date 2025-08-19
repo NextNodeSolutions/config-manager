@@ -2,15 +2,12 @@ import { readFileSync, existsSync, readdirSync } from 'fs'
 import { join } from 'path'
 
 import { deepMerge, validateConfig, getCurrentEnvironment } from './utils'
-import {
-	DEFAULT_CONFIG_DIR,
-	FILE_EXTENSIONS,
-	CONFIG_CACHE_PREFIX,
-} from './constants'
+import { FILE_EXTENSIONS, CONFIG_CACHE_PREFIX } from './constants'
 import {
 	DefaultConfigMissingError,
 	InvalidConfigFormatError,
 	InvalidJsonSyntaxError,
+	ConfigDirRequiredError,
 } from './errors'
 
 import type { ConfigObject, ConfigOptions } from './types'
@@ -25,7 +22,10 @@ export class ConfigLoader {
 	private availableConfigsCache: string[] | null = null
 
 	constructor(options: ConfigOptions = {}) {
-		this.configDir = options.configDir || DEFAULT_CONFIG_DIR
+		if (!options.configDir) {
+			throw new ConfigDirRequiredError()
+		}
+		this.configDir = options.configDir
 		this.useCache = options.cache ?? true
 	}
 

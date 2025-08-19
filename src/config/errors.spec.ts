@@ -9,6 +9,7 @@ import {
 	DefaultConfigMissingError,
 	AppEnvRequiredError,
 	AppEnvUnavailableError,
+	ConfigDirRequiredError,
 } from './errors'
 import { ERROR_CODES } from './constants'
 
@@ -211,6 +212,25 @@ describe('AppEnvUnavailableError', () => {
 	})
 })
 
+describe('ConfigDirRequiredError', () => {
+	it('should create error with config directory required message', () => {
+		const error = new ConfigDirRequiredError()
+
+		expect(error.name).toBe('ConfigError')
+		expect(error.message).toBe(
+			'configDir is required. Please provide a valid configuration directory path in ConfigOptions.',
+		)
+		expect(error.code).toBe(ERROR_CODES.CONFIG_DIR_REQUIRED)
+		expect(error).toBeInstanceOf(ConfigError)
+	})
+
+	it('should not accept any parameters', () => {
+		const error = new ConfigDirRequiredError()
+
+		expect(error.path).toBeUndefined()
+	})
+})
+
 describe('Error inheritance', () => {
 	it('should all errors inherit from ConfigError', () => {
 		const errors = [
@@ -221,6 +241,7 @@ describe('Error inheritance', () => {
 			new DefaultConfigMissingError('/path/default.json'),
 			new AppEnvRequiredError(),
 			new AppEnvUnavailableError(),
+			new ConfigDirRequiredError(),
 		]
 
 		for (const error of errors) {

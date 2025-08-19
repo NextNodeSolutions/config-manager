@@ -1,5 +1,6 @@
 import { ConfigLoader } from './loader'
 import { getNestedValue, getCurrentEnvironment } from './utils'
+import { ConfigDirRequiredError } from './errors'
 
 import type {
 	ConfigValue,
@@ -12,12 +13,13 @@ import type {
 let globalLoader: ConfigLoader | null = null
 
 /**
- * Ensure global loader is initialized with default options if not already present
+ * Ensure global loader is initialized - throws error if not initialized
  * @returns The global ConfigLoader instance
+ * @throws {ConfigDirRequiredError} When no global loader has been initialized
  */
 function ensureGlobalLoader(): ConfigLoader {
 	if (!globalLoader) {
-		globalLoader = new ConfigLoader()
+		throw new ConfigDirRequiredError()
 	}
 	return globalLoader
 }
@@ -108,6 +110,14 @@ export function clearConfigCache(): void {
 }
 
 /**
+ * Reset global loader (useful for testing)
+ * @internal
+ */
+export function resetGlobalLoader(): void {
+	globalLoader = null
+}
+
+/**
  * Get all available configuration environments
  */
 export function getAvailableEnvironments(): string[] {
@@ -162,11 +172,11 @@ export {
 	DefaultConfigMissingError,
 	AppEnvRequiredError,
 	AppEnvUnavailableError,
+	ConfigDirRequiredError,
 } from './errors'
 
 // Re-export constants for external usage
 export {
-	DEFAULT_CONFIG_DIR,
 	VALID_ENVIRONMENTS,
 	ERROR_CODES,
 	ENV_VARS,

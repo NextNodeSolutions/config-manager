@@ -2,7 +2,6 @@
  * Configuration system constants
  */
 
-export const DEFAULT_CONFIG_DIR = './config'
 export const DEFAULT_CONFIG_FILE = 'default.json'
 export const VALID_ENVIRONMENTS = ['LOCAL', 'DEV', 'PROD', 'TEST'] as const
 export const DEFAULT_LOCALE = 'en-US'
@@ -39,6 +38,7 @@ export const ERROR_CODES = {
 	DEFAULT_CONFIG_MISSING: 'DEFAULT_CONFIG_MISSING',
 	APP_ENV_REQUIRED: 'APP_ENV_REQUIRED',
 	APP_ENV_UNAVAILABLE: 'APP_ENV_UNAVAILABLE',
+	CONFIG_DIR_REQUIRED: 'CONFIG_DIR_REQUIRED',
 } as const
 
 /**

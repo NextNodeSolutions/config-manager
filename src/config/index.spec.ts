@@ -12,6 +12,8 @@ import {
 	clearConfigCache,
 	getAvailableEnvironments,
 	validateRequiredConfig,
+	ConfigDirRequiredError,
+	resetGlobalLoader,
 } from './index'
 
 import type { RootConfig, ConfigOptions } from './types'
@@ -53,8 +55,9 @@ describe('Configuration API', () => {
 			expect(() => initConfig(options)).not.toThrow()
 		})
 
-		it('should initialize with default options', () => {
-			expect(() => initConfig()).not.toThrow()
+		it('should throw error when no configDir provided', () => {
+			expect(() => initConfig()).toThrow(ConfigDirRequiredError)
+			expect(() => initConfig({})).toThrow(ConfigDirRequiredError)
 		})
 
 		it('should replace existing global loader', () => {
@@ -316,11 +319,12 @@ describe('Configuration API', () => {
 			expect(environments.length).toBe(4)
 		})
 
-		it('should work without explicit initialization', () => {
-			clearConfigCache()
+		it('should throw error without explicit initialization', () => {
+			resetGlobalLoader()
 
-			const environments = getAvailableEnvironments()
-			expect(Array.isArray(environments)).toBe(true)
+			expect(() => getAvailableEnvironments()).toThrow(
+				ConfigDirRequiredError,
+			)
 		})
 	})
 

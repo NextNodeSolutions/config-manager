@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { join, dirname } from 'path'
 import { fileURLToPath } from 'url'
 
@@ -17,25 +17,19 @@ const __dirname = dirname(__filename)
 const fixturesDir = join(__dirname, '__test-fixtures__')
 
 describe('Configuration Integration Tests', () => {
-	const originalEnv = process.env.APP_ENV
-
 	beforeEach(() => {
 		clearConfigCache()
 	})
 
 	afterEach(() => {
-		if (originalEnv !== undefined) {
-			process.env.APP_ENV = originalEnv
-		} else {
-			delete process.env.APP_ENV
-		}
+		vi.unstubAllEnvs()
 		clearConfigCache()
 	})
 
 	describe('Real configuration file loading', () => {
 		beforeEach(() => {
 			initConfig({ configDir: fixturesDir })
-			process.env.APP_ENV = 'TEST'
+			vi.stubEnv('APP_ENV', 'TEST')
 		})
 
 		it('should load and merge configuration from real files', () => {
@@ -89,7 +83,7 @@ describe('Configuration Integration Tests', () => {
 	describe('Type-safe configuration access', () => {
 		beforeEach(() => {
 			initConfig({ configDir: fixturesDir })
-			process.env.APP_ENV = 'TEST'
+			vi.stubEnv('APP_ENV', 'TEST')
 		})
 
 		it('should provide access to configuration sections', () => {
@@ -117,7 +111,7 @@ describe('Configuration Integration Tests', () => {
 	describe('Configuration validation scenarios', () => {
 		beforeEach(() => {
 			initConfig({ configDir: fixturesDir })
-			process.env.APP_ENV = 'TEST'
+			vi.stubEnv('APP_ENV', 'TEST')
 		})
 
 		it('should validate complex configuration requirements', () => {
@@ -164,7 +158,7 @@ describe('Configuration Integration Tests', () => {
 		})
 
 		it('should handle development environment correctly', () => {
-			process.env.APP_ENV = 'DEV'
+			vi.stubEnv('APP_ENV', 'DEV')
 
 			const config = getConfig()
 			expect(config?.app?.debug).toBe(true)
@@ -174,7 +168,7 @@ describe('Configuration Integration Tests', () => {
 		})
 
 		it('should handle production environment correctly', () => {
-			process.env.APP_ENV = 'PROD'
+			vi.stubEnv('APP_ENV', 'PROD')
 
 			const config = getConfig()
 			expect(config?.app?.debug).toBe(false)
@@ -204,7 +198,7 @@ describe('Configuration Integration Tests', () => {
 	describe('Performance and caching', () => {
 		beforeEach(() => {
 			initConfig({ configDir: fixturesDir, cache: true })
-			process.env.APP_ENV = 'TEST'
+			vi.stubEnv('APP_ENV', 'TEST')
 		})
 
 		it('should cache configuration for repeated access', () => {
@@ -235,7 +229,7 @@ describe('Configuration Integration Tests', () => {
 	describe('Complex nested configuration access', () => {
 		beforeEach(() => {
 			initConfig({ configDir: fixturesDir })
-			process.env.APP_ENV = 'TEST'
+			vi.stubEnv('APP_ENV', 'TEST')
 		})
 
 		it('should handle deeply nested configuration paths', () => {

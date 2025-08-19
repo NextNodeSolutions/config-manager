@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { mkdirSync, writeFileSync, rmSync, existsSync } from 'fs'
 import { join } from 'path'
 import { tmpdir } from 'os'
@@ -30,18 +30,14 @@ describe('ConfigLoader', () => {
 
 	describe('constructor', () => {
 		it('should throw error when default config directory does not exist', () => {
-			// Mock process.cwd to return a path without a config directory
-			const originalCwd = process.cwd
-			process.cwd = (): string => '/non-existent-path'
+			const cwdSpy = vi
+				.spyOn(process, 'cwd')
+				.mockReturnValue('/non-existent-path')
 
-			try {
-				expect(() => new ConfigLoader()).toThrow(ConfigDirNotFoundError)
-				expect(() => new ConfigLoader({})).toThrow(
-					ConfigDirNotFoundError,
-				)
-			} finally {
-				process.cwd = originalCwd
-			}
+			expect(() => new ConfigLoader()).toThrow(ConfigDirNotFoundError)
+			expect(() => new ConfigLoader({})).toThrow(ConfigDirNotFoundError)
+
+			cwdSpy.mockRestore()
 		})
 
 		it('should use provided config directory', () => {
@@ -117,19 +113,12 @@ describe('ConfigLoader', () => {
 				JSON.stringify(testConfig, null, 2),
 			)
 
-			const originalEnv = process.env.APP_ENV
-			process.env.APP_ENV = 'TEST'
+			vi.stubEnv('APP_ENV', 'TEST')
 
-			try {
-				const result = loader.loadConfig()
-				expect(result.app?.env).toBe('test')
-			} finally {
-				if (originalEnv !== undefined) {
-					process.env.APP_ENV = originalEnv
-				} else {
-					delete process.env.APP_ENV
-				}
-			}
+			const result = loader.loadConfig()
+			expect(result.app?.env).toBe('test')
+
+			vi.unstubAllEnvs()
 		})
 
 		it('should cache configuration when cache is enabled', () => {

@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { mkdirSync, writeFileSync, rmSync, existsSync } from 'fs'
 import { join } from 'path'
 import { tmpdir } from 'os'
@@ -17,7 +17,6 @@ import type { ConfigOptions } from './types'
 
 describe('Configuration API', () => {
 	let tempDir: string
-	const originalEnv = process.env.APP_ENV
 
 	beforeEach(() => {
 		tempDir = join(
@@ -26,7 +25,7 @@ describe('Configuration API', () => {
 		)
 		mkdirSync(tempDir, { recursive: true })
 
-		process.env.APP_ENV = 'TEST'
+		vi.stubEnv('APP_ENV', 'TEST')
 
 		clearConfigCache()
 	})
@@ -36,12 +35,7 @@ describe('Configuration API', () => {
 			rmSync(tempDir, { recursive: true, force: true })
 		}
 
-		if (originalEnv !== undefined) {
-			process.env.APP_ENV = originalEnv
-		} else {
-			delete process.env.APP_ENV
-		}
-
+		vi.unstubAllEnvs()
 		clearConfigCache()
 	})
 
@@ -217,10 +211,10 @@ describe('Configuration API', () => {
 
 	describe('getEnvironment', () => {
 		it('should return current environment', () => {
-			process.env.APP_ENV = 'DEV'
+			vi.stubEnv('APP_ENV', 'DEV')
 			expect(getEnvironment()).toBe('dev')
 
-			process.env.APP_ENV = 'PROD'
+			vi.stubEnv('APP_ENV', 'PROD')
 			expect(getEnvironment()).toBe('prod')
 		})
 	})
@@ -355,7 +349,7 @@ describe('Configuration API', () => {
 			)
 
 			initConfig({ configDir: tempDir })
-			process.env.APP_ENV = 'TEST'
+			vi.stubEnv('APP_ENV', 'TEST')
 
 			expect(() => getConfig()).not.toThrow()
 		})
@@ -388,7 +382,7 @@ describe('Configuration API', () => {
 		})
 
 		it('should use current environment when none specified', () => {
-			process.env.APP_ENV = 'TEST'
+			vi.stubEnv('APP_ENV', 'TEST')
 
 			const config = getConfig('app.name')
 			expect(config).toBe('TestApp')

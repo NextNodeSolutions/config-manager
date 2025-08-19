@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, afterEach, vi } from 'vitest'
 
 import {
 	deepMerge,
@@ -207,31 +207,21 @@ describe('validateConfig', () => {
 })
 
 describe('getCurrentEnvironment', () => {
-	const originalEnv = process.env.APP_ENV
-
-	beforeEach(() => {
-		delete process.env.APP_ENV
-	})
-
 	afterEach(() => {
-		if (originalEnv !== undefined) {
-			process.env.APP_ENV = originalEnv
-		} else {
-			delete process.env.APP_ENV
-		}
+		vi.unstubAllEnvs()
 	})
 
 	it('should return lowercase environment when APP_ENV is set correctly', () => {
-		process.env.APP_ENV = 'DEV'
+		vi.stubEnv('APP_ENV', 'DEV')
 		expect(getCurrentEnvironment()).toBe('dev')
 
-		process.env.APP_ENV = 'PROD'
+		vi.stubEnv('APP_ENV', 'PROD')
 		expect(getCurrentEnvironment()).toBe('prod')
 
-		process.env.APP_ENV = 'LOCAL'
+		vi.stubEnv('APP_ENV', 'LOCAL')
 		expect(getCurrentEnvironment()).toBe('local')
 
-		process.env.APP_ENV = 'TEST'
+		vi.stubEnv('APP_ENV', 'TEST')
 		expect(getCurrentEnvironment()).toBe('test')
 	})
 
@@ -240,21 +230,21 @@ describe('getCurrentEnvironment', () => {
 	})
 
 	it('should throw InvalidEnvironmentError for invalid environments', () => {
-		process.env.APP_ENV = 'INVALID'
+		vi.stubEnv('APP_ENV', 'INVALID')
 		expect(() => getCurrentEnvironment()).toThrow(InvalidEnvironmentError)
 
-		process.env.APP_ENV = 'staging'
+		vi.stubEnv('APP_ENV', 'staging')
 		expect(() => getCurrentEnvironment()).toThrow(InvalidEnvironmentError)
 	})
 
 	it('should throw AppEnvUnavailableError in browser environment', () => {
-		const originalProcess = global.process
+		const processGlobalSpy = vi.spyOn(global, 'process', 'get')
 		// @ts-expect-error - Testing browser environment
-		global.process = undefined
+		processGlobalSpy.mockReturnValue(undefined)
 
 		expect(() => getCurrentEnvironment()).toThrow(AppEnvUnavailableError)
 
-		global.process = originalProcess
+		processGlobalSpy.mockRestore()
 	})
 })
 

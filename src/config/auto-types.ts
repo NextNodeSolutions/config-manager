@@ -27,8 +27,24 @@ let hasGeneratedTypes = false
  */
 function detectUserProject(): string | null {
 	const currentDir = process.cwd()
-	const configPath = join(currentDir, 'config')
 
+	// Check if we're in the functions-server package itself
+	const packageJsonPath = join(currentDir, 'package.json')
+	if (existsSync(packageJsonPath)) {
+		try {
+			const packageJson = JSON.parse(
+				readFileSync(packageJsonPath, 'utf-8'),
+			)
+			if (packageJson.name === '@nextnode/functions-server') {
+				// We're in the functions-server package itself, don't auto-generate
+				return null
+			}
+		} catch {
+			// Invalid package.json, continue with config check
+		}
+	}
+
+	const configPath = join(currentDir, 'config')
 	if (existsSync(configPath) && statSync(configPath).isDirectory()) {
 		return currentDir
 	}

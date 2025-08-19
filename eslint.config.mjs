@@ -4,10 +4,9 @@ export default [
 	...nextnodeEslint,
 	{
 		ignores: [
-			'dist/**/*', 
+			'dist/**/*',
 			'coverage/**/*',
-			'src/config/__test-fixtures__/generated-types.d.ts',
-			'src/config/generate-types.cjs'
+			'src/config/generate-types.cjs',
 		],
 	},
 	{

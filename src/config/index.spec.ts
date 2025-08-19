@@ -123,9 +123,10 @@ describe('Configuration API', () => {
 
 			expect(config).toHaveProperty('app')
 			expect(config).toHaveProperty('email')
-			expect(config?.app?.name).toBe('TestApp')
-			expect(config?.app?.debug).toBe(true)
-			expect(config?.email?.from).toBe('test-env@example.com')
+			// These should work without optional chaining thanks to precise typing!
+			expect(config.app.name).toBe('TestApp')
+			expect(config.app.debug).toBe(true)
+			expect(config.email.from).toBe('test-env@example.com')
 		})
 
 		it('should get nested configuration values', () => {

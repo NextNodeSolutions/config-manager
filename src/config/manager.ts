@@ -2,10 +2,13 @@ import { ConfigLoader } from './loader'
 import { getNestedValue, getCurrentEnvironment } from './utils'
 
 import type {
-	ConfigValue,
 	ConfigPath,
 	ConfigOptions,
-	BaseConfigSchema,
+	PathValue,
+	ConfigObject,
+	DetectedConfigType,
+	AutoConfigPath,
+	UserConfigSchema,
 } from './types'
 
 // Global configuration loader instance
@@ -32,57 +35,85 @@ function resolveEnvironment(environment?: string): string {
 }
 
 /**
- * Initialize the configuration system
+ * Initialize the configuration system with optional type override
+ *
+ * @param options - Configuration options
+ *
+ * @example
+ * ```typescript
+ * // Basic initialization (uses automatic type detection)
+ * initConfig({ configDir: './config' })
+ *
+ * // With explicit type override (optional)
+ * initConfig<MyProjectConfigType>({ configDir: './config' })
+ * ```
  */
-export function initConfig(options: ConfigOptions = {}): void {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function initConfig<TSchema extends ConfigObject = UserConfigSchema>(
+	options: ConfigOptions = {},
+): void {
 	globalLoader = new ConfigLoader(options)
 }
 
 /**
  * Get configuration value with automatic type inference
  *
- * @param path - Configuration path (e.g., 'email.from', 'app.name')
+ * The types are automatically inferred from the user's config schema declaration
+ * or fall back to generic types if no schema is provided.
+ *
+ * @param path - Optional configuration path with autocompletion
  * @param environment - Optional environment override
- * @returns Configuration value or undefined if not found
+ * @returns Configuration value with precise type inference
  *
  * @example
  * ```typescript
- * // Get entire config
- * const config = getConfig()
+ * // Automatic type inference (no generics needed!)
+ * const config = getConfig() // DetectedConfigType - inferred from user schema
+ * const emailFrom = getConfig('email.from') // Inferred type based on user schema
+ * const database = getConfig('database') // Inferred section type
  *
- * // Get specific values with path
- * const emailFrom = getConfig('email.from')
- * const appFeatures = getConfig('app.features')
- *
- * // With type override
- * const customConfig = getConfig<MyCustomType>('custom.path')
+ * // Optional type override (only if needed)
+ * const customConfig = getConfig<MyCustomType>()
  * ```
  */
-export function getConfig<T = ConfigValue>(
-	path?: string | string[],
+export function getConfig(): DetectedConfigType
+export function getConfig<TPath extends AutoConfigPath>(
+	path: TPath,
+): PathValue<DetectedConfigType, TPath> | undefined
+export function getConfig<TPath extends AutoConfigPath>(
+	path: TPath,
+	environment: string,
+): PathValue<DetectedConfigType, TPath> | undefined
+export function getConfig<TOverride extends ConfigObject = DetectedConfigType>(
+	path?: ConfigPath<TOverride>,
 	environment?: string,
-): T | undefined {
+): TOverride | PathValue<TOverride, ConfigPath<TOverride>> | undefined {
 	const loader = ensureGlobalLoader()
 	const resolvedEnv = resolveEnvironment(environment)
 	const config = loader.loadConfig(resolvedEnv)
 
 	// Return entire config if no path specified
 	if (!path) {
-		return config as T
+		return config as unknown as TOverride
 	}
 
 	// Get nested value using dot notation
-	return getNestedValue<T>(config, path)
+	return getNestedValue(config, path)
 }
 
 /**
- * Check if a configuration path exists
+ * Check if a configuration path exists with automatic type inference
  */
-export function hasConfig<TSchema extends BaseConfigSchema = BaseConfigSchema>(
-	path: ConfigPath<TSchema> | string | string[],
+export function hasConfig<TPath extends AutoConfigPath>(path: TPath): boolean
+export function hasConfig<TPath extends AutoConfigPath>(
+	path: TPath,
+	environment?: string,
+): boolean
+export function hasConfig<TOverride extends ConfigObject = DetectedConfigType>(
+	path: ConfigPath<TOverride>,
 	environment?: string,
 ): boolean {
-	return getConfig(path, resolveEnvironment(environment)) !== undefined
+	return getConfig(path as never, environment as never) !== undefined
 }
 
 /**
@@ -110,19 +141,19 @@ export function getAvailableEnvironments(): string[] {
 }
 
 /**
- * Validate that required configuration paths exist
+ * Validate that required configuration paths exist with automatic type inference
  */
 export function validateRequiredConfig<
-	TSchema extends BaseConfigSchema = BaseConfigSchema,
+	TOverride extends ConfigObject = DetectedConfigType,
 >(
-	requiredPaths: (ConfigPath<TSchema> | string | string[])[],
+	requiredPaths: (ConfigPath<TOverride> | string)[],
 	environment?: string,
-): { valid: boolean; missing: (ConfigPath<TSchema> | string | string[])[] } {
+): { valid: boolean; missing: (ConfigPath<TOverride> | string)[] } {
 	const resolvedEnv = resolveEnvironment(environment)
-	const missing: (ConfigPath<TSchema> | string | string[])[] = []
+	const missing: (ConfigPath<TOverride> | string)[] = []
 
 	for (const path of requiredPaths) {
-		if (!hasConfig(path, resolvedEnv)) {
+		if (getConfig(path as never, resolvedEnv) === undefined) {
 			missing.push(path)
 		}
 	}

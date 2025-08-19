@@ -19,6 +19,12 @@ export type {
 	ConfigPath,
 	ConfigOptions,
 	BaseConfigSchema,
+	InferConfigType,
+	MergeConfigs,
+	PathValue,
+	UserConfigSchema,
+	DetectedConfigType,
+	AutoConfigPath,
 } from './types'
 
 // Utility functions

@@ -3,6 +3,9 @@ import { mkdirSync, writeFileSync, rmSync, existsSync } from 'fs'
 import { join } from 'path'
 import { tmpdir } from 'os'
 
+// Import generated types for precise type inference in tests
+import './__test-fixtures__/generated-types.d.ts'
+
 import {
 	initConfig,
 	getConfig,

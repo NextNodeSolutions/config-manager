@@ -2,6 +2,9 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { join, dirname } from 'path'
 import { fileURLToPath } from 'url'
 
+// Import generated types for precise type inference in tests
+import './__test-fixtures__/generated-types.d.ts'
+
 import {
 	initConfig,
 	getConfig,
@@ -35,34 +38,34 @@ describe('Configuration Integration Tests', () => {
 		it('should load and merge configuration from real files', () => {
 			const config = getConfig()
 
-			expect(config.app?.name).toBe('NextNode Functions Server')
-			expect(config.app?.environment).toBe('test')
-			expect(config.app?.debug).toBe(true)
-			expect(config.email?.from).toBe('test@nextnode.test')
-			expect(config.email?.provider).toBe('mock')
-			expect(config.database?.port).toBe(5434)
+			expect(config.app.name).toBe('NextNode Functions Server')
+			expect(config.app.environment).toBe('test')
+			expect(config.app.debug).toBe(true)
+			expect(config.email.from).toBe('test@nextnode.test')
+			expect(config.email.provider).toBe('mock')
+			expect(config.database.port).toBe(5434)
 		})
 
 		it('should correctly merge environment-specific overrides', () => {
 			const devConfig = getConfig(undefined, 'dev')
 			const prodConfig = getConfig(undefined, 'prod')
 
-			expect(devConfig?.app?.debug).toBe(true)
-			expect(devConfig?.email?.provider).toBe('console')
-			expect(devConfig?.database?.port).toBe(5433)
+			expect(devConfig.app.debug).toBe(true)
+			expect(devConfig.email.provider).toBe('console')
+			expect(devConfig.database.port).toBe(5433)
 
-			expect(prodConfig?.app?.debug).toBe(false)
-			expect(prodConfig?.email?.provider).toBe('sendgrid')
-			expect(prodConfig?.database?.ssl).toBe(true)
+			expect(prodConfig.app.debug).toBe(false)
+			expect(prodConfig.email.provider).toBe('sendgrid')
+			expect(prodConfig.database.ssl).toBe(true)
 		})
 
 		it('should preserve default values when not overridden', () => {
 			const config = getConfig(undefined, 'prod')
 
-			expect(config.app?.name).toBe('NextNode Functions Server')
-			expect(config.app?.version).toBe('1.0.0')
-			expect(config.database?.name).toBe('nextnode_production')
-			expect(config.api?.retries).toBe(5)
+			expect(config.app.name).toBe('NextNode Functions Server')
+			expect(config.app.version).toBe('1.0.0')
+			expect(config.database.name).toBe('nextnode_production')
+			expect(config.api.retries).toBe(5)
 		})
 
 		it('should handle deep merging of nested objects', () => {
@@ -161,9 +164,9 @@ describe('Configuration Integration Tests', () => {
 			vi.stubEnv('APP_ENV', 'DEV')
 
 			const config = getConfig()
-			expect(config.app?.debug).toBe(true)
-			expect(config.email?.provider).toBe('console')
-			expect(config.api?.timeout).toBe(10000)
+			expect(config.app.debug).toBe(true)
+			expect(config.email.provider).toBe('console')
+			expect(config.api.timeout).toBe(10000)
 			expect(getEnvironment()).toBe('dev')
 		})
 
@@ -171,10 +174,10 @@ describe('Configuration Integration Tests', () => {
 			vi.stubEnv('APP_ENV', 'PROD')
 
 			const config = getConfig()
-			expect(config.app?.debug).toBe(false)
-			expect(config.email?.provider).toBe('sendgrid')
-			expect(config.database?.ssl).toBe(true)
-			expect(config.monitoring?.enabled).toBe(true)
+			expect(config.app.debug).toBe(false)
+			expect(config.email.provider).toBe('sendgrid')
+			expect(config.database.ssl).toBe(true)
+			expect(config.monitoring.enabled).toBe(true)
 			expect(getEnvironment()).toBe('prod')
 		})
 	})
@@ -260,15 +263,15 @@ describe('Configuration Integration Tests', () => {
 		it('should demonstrate correct precedence order', () => {
 			const config = getConfig(undefined, 'prod')
 
-			expect(config.app?.name).toBe('NextNode Functions Server')
-			expect(config.app?.features).toEqual([
+			expect(config.app.name).toBe('NextNode Functions Server')
+			expect(config.app.features).toEqual([
 				'config',
 				'logging',
 				'metrics',
 				'monitoring',
 			])
-			expect(config.email?.from).toBe('noreply@nextnode.com')
-			expect(config.email?.provider).toBe('sendgrid')
+			expect(config.email.from).toBe('noreply@nextnode.com')
+			expect(config.email.provider).toBe('sendgrid')
 		})
 
 		it('should preserve arrays from environment overrides', () => {

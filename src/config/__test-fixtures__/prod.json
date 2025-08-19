@@ -1,0 +1,32 @@
+{
+  "app": {
+    "debug": false,
+    "environment": "production",
+    "features": ["config", "logging", "metrics", "monitoring"]
+  },
+  "email": {
+    "provider": "sendgrid",
+    "templates": {
+      "welcome": {
+        "subject": "Welcome to NextNode",
+        "body": "Thank you for joining NextNode. We're excited to have you on board!"
+      }
+    }
+  },
+  "database": {
+    "host": "prod-db.nextnode.com",
+    "port": 5432,
+    "name": "nextnode_production",
+    "ssl": true,
+    "connectionPoolSize": 20
+  },
+  "api": {
+    "baseUrl": "https://api.nextnode.com",
+    "timeout": 3000,
+    "retries": 5
+  },
+  "monitoring": {
+    "enabled": true,
+    "service": "datadog"
+  }
+}

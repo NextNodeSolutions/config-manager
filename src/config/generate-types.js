@@ -101,9 +101,12 @@ function generateConfigTypes(configDir) {
 		throw new Error(`Config directory not found: ${configDir}`)
 	}
 
-	const files = readdirSync(configDir).filter(
-		file => extname(file) === '.json',
-	)
+	// Files to exclude from type generation (used for error testing)
+	const excludedFiles = ['invalid.json']
+
+	const files = readdirSync(configDir)
+		.filter(file => extname(file) === '.json')
+		.filter(file => !excludedFiles.includes(file))
 
 	if (files.length === 0) {
 		throw new Error(`No JSON config files found in: ${configDir}`)

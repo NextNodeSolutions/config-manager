@@ -11,7 +11,7 @@ import {
 	readdirSync,
 	mkdirSync,
 } from 'node:fs'
-import { join, dirname } from 'node:path'
+import { join, dirname, resolve, relative } from 'node:path'
 import { createHash } from 'node:crypto'
 
 interface AutoTypeOptions {
@@ -107,6 +107,22 @@ function hasConfigChanged(configDir: string, outputFile: string): boolean {
 }
 
 /**
+ * Validate that the output path is safe (no path traversal)
+ */
+function validateOutputPath(outputFile: string, projectRoot: string): boolean {
+	try {
+		const resolvedOutput = resolve(outputFile)
+		const resolvedProject = resolve(projectRoot)
+		const relativePath = relative(resolvedProject, resolvedOutput)
+
+		// Check if the path tries to escape the project directory
+		return !relativePath.startsWith('..')
+	} catch {
+		return false
+	}
+}
+
+/**
  * Generate types using our existing generator
  */
 async function generateTypes(
@@ -114,15 +130,22 @@ async function generateTypes(
 	outputFile: string,
 ): Promise<void> {
 	try {
+		// Validate output path for security
+		const projectRoot = process.cwd()
+		if (!validateOutputPath(outputFile, projectRoot)) {
+			throw new Error(
+				`Invalid output path: ${outputFile}. Path traversal detected.`,
+			)
+		}
+
 		// Ensure types directory exists
 		const typesDir = dirname(outputFile)
 		if (!existsSync(typesDir)) {
 			mkdirSync(typesDir, { recursive: true })
 		}
 
-		// Import our generator
-		// eslint-disable-next-line @typescript-eslint/no-require-imports
-		const { generateConfigTypes } = require('./generate-types.cjs')
+		// Import our generator dynamically
+		const { generateConfigTypes } = await import('./generate-types.js')
 		const typeContent = generateConfigTypes(configDir)
 
 		// Add hash to the generated content for change detection

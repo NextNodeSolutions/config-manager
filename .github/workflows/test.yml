@@ -13,7 +13,6 @@ jobs:
     - name: Checkout Repo
       uses: actions/checkout@v4
       with:
-        # Fetch github-actions repo for reusable action
         token: ${{ secrets.GITHUB_TOKEN }}
         
     - name: Checkout GitHub Actions

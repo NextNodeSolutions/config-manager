@@ -6,23 +6,25 @@ on:
 
 jobs:
   test:
+    name: Quality Pipeline
     runs-on: ubuntu-latest
     
     steps:
-    - uses: actions/checkout@v4
-    
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
+    - name: Checkout Repo
+      uses: actions/checkout@v4
+      with:
+        # Fetch github-actions repo for reusable action
+        token: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: Checkout GitHub Actions
+      uses: actions/checkout@v4
+      with:
+        repository: NextNodeSolutions/github-actions
+        path: .github-actions
+        token: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: Run Quality Pipeline
+      uses: ./.github-actions/actions/quality-pipeline
       with:
         node-version: '20'
-        
-    - name: Install pnpm
-      uses: pnpm/action-setup@v2
-      with:
-        version: 10.11.0
-        
-    - name: Install dependencies
-      run: pnpm install
-      
-    - name: Run tests
-      run: pnpm test 
+        pnpm-version: '10.11.0' 

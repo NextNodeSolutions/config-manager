@@ -1,3 +1,8 @@
+import {
+	DEFAULT_LOCALE,
+	DEFAULT_DATE_FORMAT_OPTIONS,
+} from '../config/constants'
+
 /**
  * Formats a date into a localized string
  * @param date - The date to format
@@ -7,12 +12,8 @@
  */
 export function formatDate(
 	date: Date | string | number,
-	locale: string = 'en-US',
-	options: Intl.DateTimeFormatOptions = {
-		year: 'numeric',
-		month: 'long',
-		day: 'numeric',
-	},
+	locale: string = DEFAULT_LOCALE,
+	options: Intl.DateTimeFormatOptions = DEFAULT_DATE_FORMAT_OPTIONS,
 ): string {
 	const dateObj = new Date(date)
 	return new Intl.DateTimeFormat(locale, options).format(dateObj)

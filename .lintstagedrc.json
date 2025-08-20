@@ -1,5 +1,5 @@
 {
-	"!(src/config/__test-fixtures__/generated-types.d.ts|src/config/generate-types.cjs)*.{js,jsx,ts,tsx}": [
+	"!(src/config/__test-fixtures__/generated-types.d.ts)*.{js,jsx,ts,tsx}": [
 		"pnpm lint:fix"
 	],
 	"*.{js,jsx,ts,tsx,json,jsonc,md}": [

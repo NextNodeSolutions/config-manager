@@ -24,8 +24,8 @@ importers:
         specifier: ^19.1.0
         version: 19.8.1
       '@nextnode/eslint-plugin':
-        specifier: ^1.1.1
-        version: 1.1.1(eslint@9.27.0(jiti@2.4.2))
+        specifier: ^1.2.0
+        version: 1.2.0(eslint@9.27.0(jiti@2.4.2))
       '@testing-library/jest-dom':
         specifier: ^6.6.3
         version: 6.6.3
@@ -537,8 +537,8 @@ packages:
   '@next/eslint-plugin-next@15.3.2':
     resolution: {integrity: sha512-ijVRTXBgnHT33aWnDtmlG+LJD+5vhc9AKTJPquGG5NKXjpKNjc62woIhFtrAcWdBobt8kqjCoaJ0q6sDQoX7aQ==}
 
-  '@nextnode/eslint-plugin@1.1.1':
-    resolution: {integrity: sha512-Y+G+QbUiPVXKghHdoBZSBAf17mfcaN684fXsvqYoVOpGspx4xHsjGxX5xhX1HJSyIohxAWtzScCgW+BXWzz46A==}
+  '@nextnode/eslint-plugin@1.2.0':
+    resolution: {integrity: sha512-aXwB0+aHPr2iWKpvj/bXsBKnl4OrW9S0C9YCTQXsPsw9jbOBaYlqgTr9QMIpQK/4gKyS1nO+iQcaEr7XF50NhA==}
     engines: {node: '>= 20.0.0'}
     peerDependencies:
       eslint: ^9.22.0
@@ -3290,7 +3290,7 @@ snapshots:
     dependencies:
       fast-glob: 3.3.1
 
-  '@nextnode/eslint-plugin@1.1.1(eslint@9.27.0(jiti@2.4.2))':
+  '@nextnode/eslint-plugin@1.2.0(eslint@9.27.0(jiti@2.4.2))':
     dependencies:
       '@eslint/js': 9.27.0
       '@next/eslint-plugin-next': 15.3.2

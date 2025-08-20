@@ -5,8 +5,8 @@
  * This script reads JSON config files and creates precise TypeScript types
  */
 
-const { readFileSync, writeFileSync, readdirSync, existsSync } = require('fs')
-const { join, extname, basename } = require('path')
+import { readFileSync, writeFileSync, readdirSync, existsSync } from 'node:fs'
+import { join, extname, basename } from 'node:path'
 
 /**
  * Convert a JSON value to its TypeScript type representation
@@ -53,7 +53,7 @@ function deepMerge(target, source) {
 	const result = { ...target }
 
 	for (const key in source) {
-		if (source.hasOwnProperty(key)) {
+		if (Object.prototype.hasOwnProperty.call(source, key)) {
 			if (
 				typeof source[key] === 'object' &&
 				source[key] !== null &&
@@ -161,9 +161,9 @@ function main() {
 }
 
 // Export for use as module
-module.exports = { generateConfigTypes }
+export { generateConfigTypes }
 
 // Run if called directly
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
 	main()
 }

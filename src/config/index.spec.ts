@@ -49,19 +49,14 @@ describe('Configuration API', () => {
 			expect(() => initConfig(options)).not.toThrow()
 		})
 
-		it('should work with default config directory when it exists', () => {
-			// Create a config directory in current working directory for this test
-			const configDir = join(process.cwd(), 'config')
-			if (!existsSync(configDir)) {
-				mkdirSync(configDir, { recursive: true })
-				writeFileSync(
-					join(configDir, 'default.json'),
-					'{"app": {"name": "TestApp"}}',
-				)
-			}
+		it('should work with explicit config directory', () => {
+			// Use tempDir instead of creating config in current working directory
+			writeFileSync(
+				join(tempDir, 'default.json'),
+				'{"app": {"name": "TestApp"}}',
+			)
 
-			expect(() => initConfig()).not.toThrow()
-			expect(() => initConfig({})).not.toThrow()
+			expect(() => initConfig({ configDir: tempDir })).not.toThrow()
 		})
 
 		it('should replace existing global loader', () => {

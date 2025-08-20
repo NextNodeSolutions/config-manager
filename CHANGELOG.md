@@ -1,5 +1,11 @@
 # @nextnode/functions-server
 
+## 1.0.1
+
+### Patch Changes
+
+- [#8](https://github.com/NextNodeSolutions/functions-server/pull/8) [`80ef43b`](https://github.com/NextNodeSolutions/functions-server/commit/80ef43bb563e1e3f0582d0dd8c300f603dc6208f) Thanks [@walid-mos](https://github.com/walid-mos)! - Fix type generation by excluding invalid test files. Prevents error warnings during type checking while maintaining test file integrity.
+
 ## 1.0.0
 
 ### Major Changes

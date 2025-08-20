@@ -1,6 +1,6 @@
 {
 	"name": "@nextnode/functions-server",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"description": "A TypeScript server library for Nextnode Functions, designed to simplify function execution and API interactions.",
 	"keywords": [
 		"api",
@@ -11,7 +11,10 @@
 	],
 	"license": "ISC",
 	"author": "Nextnode",
-	"files": ["README.md", "dist/"],
+	"files": [
+		"README.md",
+		"dist/"
+	],
 	"main": "./dist/index.js",
 	"scripts": {
 		"prebuild": "npm run clean",

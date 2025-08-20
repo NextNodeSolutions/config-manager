@@ -11,6 +11,7 @@
 	],
 	"license": "ISC",
 	"author": "Nextnode",
+	"files": ["README.md", "dist/"],
 	"main": "./dist/index.js",
 	"scripts": {
 		"prebuild": "npm run clean",
@@ -27,6 +28,7 @@
 		"lint-staged": "lint-staged",
 		"lint:fix": "eslint . --max-warnings 0 --fix",
 		"prepare": "husky",
+		"prepublishOnly": "pnpm build",
 		"test": "vitest run",
 		"test:coverage": "vitest run --coverage",
 		"test:ui": "vitest --ui",
@@ -64,6 +66,11 @@
 			"types": "./dist/index.d.ts",
 			"import": "./dist/index.js",
 			"require": "./dist/index.js"
+		},
+		"./config": {
+			"types": "./dist/config/index.d.ts",
+			"import": "./dist/config/index.js",
+			"require": "./dist/config/index.js"
 		}
 	},
 	"module": "./dist/index.js",

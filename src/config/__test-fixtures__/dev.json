@@ -1,25 +1,25 @@
 {
-  "app": {
-    "debug": true,
-    "environment": "development"
-  },
-  "email": {
-    "from": "dev@nextnode.local",
-    "provider": "console",
-    "templates": {
-      "welcome": {
-        "subject": "[DEV] Welcome to NextNode"
-      }
-    }
-  },
-  "database": {
-    "host": "localhost",
-    "port": 5433,
-    "name": "nextnode_dev",
-    "debug": true
-  },
-  "api": {
-    "baseUrl": "http://localhost:3000",
-    "timeout": 10000
-  }
+	"app": {
+		"debug": true,
+		"environment": "development"
+	},
+	"email": {
+		"from": "dev@nextnode.local",
+		"provider": "console",
+		"templates": {
+			"welcome": {
+				"subject": "[DEV] Welcome to NextNode"
+			}
+		}
+	},
+	"database": {
+		"host": "localhost",
+		"port": 5433,
+		"name": "nextnode_dev",
+		"debug": true
+	},
+	"api": {
+		"baseUrl": "http://localhost:3000",
+		"timeout": 10000
+	}
 }

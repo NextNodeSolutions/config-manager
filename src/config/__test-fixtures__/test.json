@@ -1,28 +1,28 @@
 {
-  "app": {
-    "debug": true,
-    "environment": "test",
-    "features": ["config"]
-  },
-  "email": {
-    "from": "test@nextnode.test",
-    "provider": "mock",
-    "templates": {
-      "welcome": {
-        "subject": "[TEST] Welcome",
-        "body": "Test welcome message"
-      }
-    }
-  },
-  "database": {
-    "host": "localhost",
-    "port": 5434,
-    "name": "nextnode_test",
-    "debug": false
-  },
-  "api": {
-    "baseUrl": "http://localhost:3001",
-    "timeout": 1000,
-    "retries": 1
-  }
+	"app": {
+		"debug": true,
+		"environment": "test",
+		"features": ["config"]
+	},
+	"email": {
+		"from": "test@nextnode.test",
+		"provider": "mock",
+		"templates": {
+			"welcome": {
+				"subject": "[TEST] Welcome",
+				"body": "Test welcome message"
+			}
+		}
+	},
+	"database": {
+		"host": "localhost",
+		"port": 5434,
+		"name": "nextnode_test",
+		"debug": false
+	},
+	"api": {
+		"baseUrl": "http://localhost:3001",
+		"timeout": 1000,
+		"retries": 1
+	}
 }

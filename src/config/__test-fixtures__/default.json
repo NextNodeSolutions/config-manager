@@ -1,32 +1,32 @@
 {
-  "app": {
-    "name": "NextNode Functions Server",
-    "version": "1.0.0",
-    "features": ["config", "logging", "metrics"],
-    "environment": "default"
-  },
-  "email": {
-    "from": "noreply@nextnode.com",
-    "provider": "default",
-    "templates": {
-      "welcome": {
-        "subject": "Welcome to NextNode",
-        "body": "Welcome to our platform!"
-      },
-      "projectRequest": {
-        "subject": "New Project Request",
-        "body": "A new project has been requested."
-      }
-    }
-  },
-  "database": {
-    "host": "localhost",
-    "port": 5432,
-    "name": "nextnode_default"
-  },
-  "api": {
-    "baseUrl": "https://api.nextnode.com",
-    "timeout": 5000,
-    "retries": 3
-  }
+	"app": {
+		"name": "NextNode Functions Server",
+		"version": "1.0.0",
+		"features": ["config", "logging", "metrics"],
+		"environment": "default"
+	},
+	"email": {
+		"from": "noreply@nextnode.com",
+		"provider": "default",
+		"templates": {
+			"welcome": {
+				"subject": "Welcome to NextNode",
+				"body": "Welcome to our platform!"
+			},
+			"projectRequest": {
+				"subject": "New Project Request",
+				"body": "A new project has been requested."
+			}
+		}
+	},
+	"database": {
+		"host": "localhost",
+		"port": 5432,
+		"name": "nextnode_default"
+	},
+	"api": {
+		"baseUrl": "https://api.nextnode.com",
+		"timeout": 5000,
+		"retries": 3
+	}
 }

@@ -4,18 +4,27 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**@nextnode/functions-server** is a comprehensive TypeScript server library for Nextnode projects, providing shared utilities and functions for server-side development. It includes configuration management, formatting utilities, and will expand to include more server-related functionality.
+**@nextnode/functions-server** (v1.0.1) is a comprehensive TypeScript server library for Nextnode projects, providing shared utilities and functions for server-side development. It includes configuration management with automatic type generation, formatting utilities, and will expand to include more server-related functionality.
+
+**Key Features:**
+- **Environment-aware configuration management** with automatic TypeScript type generation
+- **Comprehensive error handling** with custom error classes
+- **Pure ESM package** with TypeScript strict mode
+- **Full test coverage** with Vitest and integration testing
+- **Automated CI/CD** with quality gates and NPM publishing
 
 ## Architecture
 
 ### Current Modules
 
 - **Configuration Management** (`src/config/`): Environment-aware config system with automatic type generation
-  - `manager.ts`: Public API for configuration access (initConfig, getConfig, etc.)
+  - `manager.ts`: Public API for configuration access (initConfig, getConfig, validateRequiredConfig, etc.)
   - `loader.ts`: ConfigLoader class handling file loading and caching
   - `auto-types.ts`: Automatic TypeScript type generation from JSON configs
-  - `utils.ts`: Deep merge and nested value utilities
+  - `utils.ts`: Deep merge, nested value utilities, and environment detection
   - `errors.ts`: Custom error classes for configuration failures
+  - `constants.ts`: Environment constants and error codes
+  - `types.ts`: TypeScript type definitions for the config system
 
 - **Formatting Utilities** (`src/formatting/`): Date and data formatting helpers
   - `date.ts`: Date formatting functions
@@ -63,6 +72,22 @@ pnpm changeset:version  # Update versions from changesets
 pnpm changeset:publish  # Publish to NPM registry
 ```
 
+## CI/CD Workflows
+
+The project includes comprehensive GitHub Actions workflows:
+
+### Test Workflow (`.github/workflows/test.yml`)
+- Triggers on pull requests to main/master branches
+- Runs comprehensive quality checks using reusable actions from `NextNodeSolutions/github-actions`
+- Includes linting, type checking, testing, and formatting validation
+
+### Release Workflow (`.github/workflows/release.yml`)
+- Triggers on pushes to main branch and manual workflow dispatch
+- Single integrated pipeline: quality validation + automated release
+- Uses Changesets for version management and NPM publishing
+- Automatically creates release PRs and publishes to NPM registry
+- Includes concurrency control to prevent conflicting releases
+
 ## Testing Strategy
 
 - **Unit Tests**: Individual functions and classes (`*.spec.ts`)
@@ -73,8 +98,13 @@ pnpm changeset:publish  # Publish to NPM registry
 ## Export Structure
 
 The library uses multiple export paths for different modules:
-- Main entry (`@nextnode/functions-server`): All public APIs
-- Config subpath (`@nextnode/functions-server/config`): Config-specific exports
+- **Main entry** (`@nextnode/functions-server`): All public APIs including:
+  - Configuration functions: `initConfig`, `getConfig`, `hasConfig`, `validateRequiredConfig`
+  - Utility functions: `deepMerge`, `getNestedValue`, `setNestedValue`
+  - Error classes: `ConfigError`, `ConfigNotFoundError`, etc.
+  - Types: `ConfigObject`, `ConfigValue`, `ConfigPath`, etc.
+  - Date formatting: `formatDate`
+- **Config subpath** (`@nextnode/functions-server/config`): Config-specific exports
 - Additional subpaths will be added as new modules are implemented
 
 ## TypeScript Configuration
@@ -95,6 +125,7 @@ When adding new server functionality:
 5. Consider adding a subpath export in `package.json` if module is substantial
 6. Document the module in this file under "Current Modules"
 7. Run full validation: `pnpm lint && pnpm type-check && pnpm test`
+8. Ensure CI/CD workflows pass before merging PRs
 
 ## Common Development Tasks
 
@@ -104,6 +135,7 @@ When adding new server functionality:
 3. Add comprehensive tests
 4. Update exports in `src/index.ts`
 5. Run `pnpm lint && pnpm type-check && pnpm test` before committing
+6. Ensure GitHub Actions workflows pass in PR
 
 ### Creating a New Module
 1. Create directory: `src/[module-name]/`
@@ -121,10 +153,13 @@ When adding new server functionality:
 ## Module-Specific Notes
 
 ### Configuration Module
-- Auto-generates types from JSON config files
-- Supports environment-based config loading (default → environment → local)
-- Types generated in user's project at `types/config.d.ts`
-- Triggers type generation on first `initConfig()` or `getConfig()` call
+- **Auto-type generation**: Automatically generates TypeScript types from JSON config files
+- **Environment-aware loading**: Supports layered config loading (default → environment → local)
+- **Global management**: Uses singleton pattern with `ensureGlobalLoader()` for consistent state
+- **Type generation location**: Types generated in user's project at `types/config.d.ts`
+- **Auto-trigger**: Type generation occurs automatically on first `initConfig()` or `getConfig()` call
+- **Validation**: Includes `validateRequiredConfig()` for runtime config validation
+- **Environment detection**: Automatic environment detection from NODE_ENV and custom logic
 
 ### Future Modules
 Each new module should:

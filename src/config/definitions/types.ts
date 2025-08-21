@@ -11,6 +11,18 @@ export type ConfigValue =
 	| ConfigObject
 
 /**
+ * Deep readonly utility type that makes all properties readonly recursively
+ * Ensures complete immutability for nested configuration objects
+ */
+export type DeepReadonly<T> = T extends (infer U)[]
+	? ReadonlyArray<DeepReadonly<U>>
+	: T extends Record<string, unknown>
+		? {
+				readonly [K in keyof T]: DeepReadonly<T[K]>
+			}
+		: T
+
+/**
  * Utility type to infer exact types from JSON config objects
  * Converts values to their literal types and makes everything readonly
  */
@@ -52,6 +64,7 @@ export type MergeConfigs<TBase, TOverride> = TBase extends Record<
 /**
  * Utility type to extract all possible string paths from a nested object type
  * Supports dot notation like 'email.from', 'app.name', etc.
+ * Returns strict literal types for type safety and autocompletion
  */
 export type ConfigPath<T = ConfigObject> = T extends Record<string, unknown>
 	? {
@@ -64,7 +77,8 @@ export type ConfigPath<T = ConfigObject> = T extends Record<string, unknown>
 	: string
 
 /**
- * Utility type to get the value type at a specific path in a nested object
+ * Utility type to get the exact value type at a specific path in a nested object
+ * Returns the precise type without undefined (strict mode by default)
  * Used to infer the return type of getConfig based on the path parameter
  */
 export type PathValue<T, P extends string> = P extends keyof T
@@ -79,10 +93,12 @@ export type PathValue<T, P extends string> = P extends keyof T
 
 /**
  * Base configuration schema that can be extended by projects
- * Provides a foundation for type inference while remaining flexible
+ * The actual schema is defined via module augmentation in generated-types.d.ts
+ * Empty base allows module augmentation to define precise schema
  */
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface BaseConfigSchema {
-	[key: string]: ConfigValue
+	// Empty base - specific properties defined via module augmentation only
 }
 
 /**
@@ -103,18 +119,32 @@ export interface BaseConfigSchema {
 export interface UserConfigSchema extends BaseConfigSchema {}
 
 /**
- * Detected config type - either user-defined or fallback to generic
+ * Detected config type - uses UserConfigSchema from module augmentation
+ * Types are generated automatically from the project's config files
  */
-export type DetectedConfigType = keyof UserConfigSchema extends never
-	? ConfigObject // Fallback to generic if no user schema defined
-	: InferConfigType<UserConfigSchema>
+export type DetectedConfigType = UserConfigSchema
 
 /**
- * Auto-detected configuration paths based on user schema or generic fallback
+ * Auto-detected configuration paths based on user schema
  */
-export type AutoConfigPath = keyof UserConfigSchema extends never
-	? string // Generic string if no user schema
-	: ConfigPath<UserConfigSchema>
+export type AutoConfigPath = ConfigPath<UserConfigSchema>
+
+/**
+ * Utility type for testing - extracts a property type from ConfigValue
+ * Used to safely access nested properties in test scenarios
+ */
+export type ExtractConfigProperty<
+	T extends ConfigValue,
+	K extends string,
+> = T extends Record<K, infer U> ? U : never
+
+/**
+ * Utility type for testing - safely cast ConfigObject to expected structure
+ * Only use this in test files where structure is known
+ */
+export type TestConfigCast<T> = T extends ConfigObject
+	? T & Record<string, ConfigValue>
+	: T
 
 export interface ConfigOptions {
 	environment?: string

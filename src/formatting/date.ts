@@ -1,7 +1,7 @@
 import {
 	DEFAULT_LOCALE,
 	DEFAULT_DATE_FORMAT_OPTIONS,
-} from '../config/constants'
+} from '../config/definitions/constants'
 
 /**
  * Formats a date into a localized string

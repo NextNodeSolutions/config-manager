@@ -1,16 +1,16 @@
 import { ConfigLoader } from './loader'
-import { getNestedValue, getCurrentEnvironment } from './utils'
-import { autoGenerateTypes } from './auto-types'
+import { getNestedValue } from '../utils/helpers'
+import { resolveEnvironment } from '../utils/validation'
+import { autoGenerateTypes } from './type-generator'
+import { ConfigurationPathError } from '../definitions/errors'
 
 import type {
-	ConfigPath,
 	ConfigOptions,
 	PathValue,
-	ConfigObject,
 	DetectedConfigType,
 	AutoConfigPath,
 	UserConfigSchema,
-} from './types'
+} from '../definitions/types'
 
 // Global configuration loader instance
 let globalLoader: ConfigLoader | null = null
@@ -20,9 +20,8 @@ let hasAttemptedAutoGeneration = false
 
 /**
  * Ensure global loader is initialized with default options if not already present
- * @returns The global ConfigLoader instance
  */
-function ensureGlobalLoader(): ConfigLoader {
+const ensureGlobalLoader = (): ConfigLoader => {
 	if (!globalLoader) {
 		globalLoader = new ConfigLoader()
 	}
@@ -42,15 +41,6 @@ function ensureGlobalLoader(): ConfigLoader {
 }
 
 /**
- * Resolve environment parameter, falling back to current environment
- * @param environment - Optional environment override
- * @returns Resolved environment string
- */
-function resolveEnvironment(environment?: string): string {
-	return environment || getCurrentEnvironment()
-}
-
-/**
  * Initialize the configuration system with optional type override
  *
  * @param options - Configuration options
@@ -65,9 +55,9 @@ function resolveEnvironment(environment?: string): string {
  * ```
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export function initConfig<TSchema extends ConfigObject = UserConfigSchema>(
+export const initConfig = <TSchema = UserConfigSchema>(
 	options: ConfigOptions = {},
-): void {
+): void => {
 	globalLoader = new ConfigLoader(options)
 
 	// Automatically generate types for the user project (mandatory)
@@ -103,28 +93,40 @@ export function initConfig<TSchema extends ConfigObject = UserConfigSchema>(
  * ```
  */
 export function getConfig(): DetectedConfigType
+export function getConfig(
+	path: undefined,
+	environment: string,
+): DetectedConfigType
 export function getConfig<TPath extends AutoConfigPath>(
 	path: TPath,
-): PathValue<DetectedConfigType, TPath> | undefined
+): PathValue<UserConfigSchema, TPath>
 export function getConfig<TPath extends AutoConfigPath>(
 	path: TPath,
 	environment: string,
-): PathValue<DetectedConfigType, TPath> | undefined
-export function getConfig<TOverride extends ConfigObject = DetectedConfigType>(
-	path?: ConfigPath<TOverride>,
+): PathValue<UserConfigSchema, TPath>
+export function getConfig<TOverride = DetectedConfigType>(
+	path?: string,
 	environment?: string,
-): TOverride | PathValue<TOverride, ConfigPath<TOverride>> | undefined {
+): TOverride | PathValue<UserConfigSchema, AutoConfigPath> {
 	const loader = ensureGlobalLoader()
 	const resolvedEnv = resolveEnvironment(environment)
 	const config = loader.loadConfig(resolvedEnv)
 
-	// Return entire config if no path specified
+	// Return entire config if no path specified (deeply readonly)
 	if (!path) {
-		return config as unknown as TOverride
+		return config as TOverride
 	}
 
 	// Get nested value using dot notation
-	return getNestedValue(config, path)
+	const value = getNestedValue(config, path)
+	if (value === undefined) {
+		throw new ConfigurationPathError(
+			path,
+			resolvedEnv,
+			loader.getConfigDirectory?.(),
+		)
+	}
+	return value as PathValue<UserConfigSchema, AutoConfigPath>
 }
 
 /**
@@ -135,24 +137,27 @@ export function hasConfig<TPath extends AutoConfigPath>(
 	path: TPath,
 	environment?: string,
 ): boolean
-export function hasConfig<TOverride extends ConfigObject = DetectedConfigType>(
-	path: ConfigPath<TOverride>,
-	environment?: string,
-): boolean {
-	return getConfig(path as never, environment as never) !== undefined
+export function hasConfig(path: string, environment?: string): boolean {
+	try {
+		const value = getNestedValue(
+			ensureGlobalLoader().loadConfig(resolveEnvironment(environment)),
+			path,
+		)
+		return value !== undefined
+	} catch {
+		return false
+	}
 }
 
 /**
  * Get current environment name
  */
-export function getEnvironment(): string {
-	return getCurrentEnvironment()
-}
+export const getEnvironment = (): string => resolveEnvironment()
 
 /**
  * Clear configuration cache (useful for testing or hot reloading)
  */
-export function clearConfigCache(): void {
+export const clearConfigCache = (): void => {
 	if (globalLoader) {
 		globalLoader.clearCache()
 	}
@@ -161,7 +166,7 @@ export function clearConfigCache(): void {
 /**
  * Get all available configuration environments
  */
-export function getAvailableEnvironments(): string[] {
+export const getAvailableEnvironments = (): string[] => {
 	const loader = ensureGlobalLoader()
 	return loader.getAvailableConfigs()
 }
@@ -169,17 +174,15 @@ export function getAvailableEnvironments(): string[] {
 /**
  * Validate that required configuration paths exist with automatic type inference
  */
-export function validateRequiredConfig<
-	TOverride extends ConfigObject = DetectedConfigType,
->(
-	requiredPaths: (ConfigPath<TOverride> | string)[],
+export const validateRequiredConfig = (
+	requiredPaths: string[],
 	environment?: string,
-): { valid: boolean; missing: (ConfigPath<TOverride> | string)[] } {
+): { valid: boolean; missing: string[] } => {
 	const resolvedEnv = resolveEnvironment(environment)
-	const missing: (ConfigPath<TOverride> | string)[] = []
+	const missing: string[] = []
 
 	for (const path of requiredPaths) {
-		if (getConfig(path as never, resolvedEnv) === undefined) {
+		if (!hasConfig(path, resolvedEnv)) {
 			missing.push(path)
 		}
 	}

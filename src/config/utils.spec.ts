@@ -4,17 +4,16 @@ import {
 	deepMerge,
 	getNestedValue,
 	setNestedValue,
-	validateConfig,
-	getCurrentEnvironment,
 	cloneConfig,
-} from './utils'
+} from './utils/helpers'
+import { validateConfig, getCurrentEnvironment } from './utils/validation'
 import {
 	InvalidEnvironmentError,
 	AppEnvRequiredError,
 	AppEnvUnavailableError,
-} from './errors'
+} from './definitions/errors'
 
-import type { ConfigObject } from './types'
+import type { ConfigObject, ConfigValue } from './definitions/types'
 
 describe('deepMerge', () => {
 	it('should merge simple objects', () => {
@@ -156,21 +155,32 @@ describe('setNestedValue', () => {
 		const obj: ConfigObject = { email: { from: 'old@example.com' } }
 		setNestedValue(obj, 'email.from', 'new@example.com')
 
-		expect(obj.email.from).toBe('new@example.com')
+		const emailConfig = obj.email as Record<string, ConfigValue>
+		expect(emailConfig.from).toBe('new@example.com')
 	})
 
 	it('should create nested objects when they do not exist', () => {
 		const obj: ConfigObject = {}
 		setNestedValue(obj, 'email.templates.welcome.subject', 'Welcome!')
 
-		expect(obj.email?.templates?.welcome?.subject).toBe('Welcome!')
+		const emailConfig = obj.email as Record<string, ConfigValue>
+		const templatesConfig = emailConfig?.templates as Record<
+			string,
+			ConfigValue
+		>
+		const welcomeConfig = templatesConfig?.welcome as Record<
+			string,
+			ConfigValue
+		>
+		expect(welcomeConfig?.subject).toBe('Welcome!')
 	})
 
 	it('should handle array paths', () => {
 		const obj: ConfigObject = {}
 		setNestedValue(obj, ['app', 'name'], 'TestApp')
 
-		expect(obj.app?.name).toBe('TestApp')
+		const appConfig = obj.app as Record<string, ConfigValue>
+		expect(appConfig?.name).toBe('TestApp')
 	})
 
 	it('should replace non-object intermediate values with objects', () => {
@@ -267,7 +277,14 @@ describe('cloneConfig', () => {
 		expect(cloned).toEqual(original)
 		expect(cloned).not.toBe(original)
 		expect(cloned.email).not.toBe(original.email)
-		expect(cloned.email?.templates).not.toBe(original.email?.templates)
+		const clonedEmailConfig = cloned.email as Record<string, ConfigValue>
+		const originalEmailConfig = original.email as Record<
+			string,
+			ConfigValue
+		>
+		expect(clonedEmailConfig?.templates).not.toBe(
+			originalEmailConfig?.templates,
+		)
 	})
 
 	it('should handle null and undefined values in clone', () => {
@@ -284,6 +301,7 @@ describe('cloneConfig', () => {
 		expect(cloned).toEqual(original)
 		expect(cloned.nullValue).toBeNull()
 		expect(cloned.undefinedValue).toBeUndefined()
-		expect(cloned.nested?.nullValue).toBeNull()
+		const nestedConfig = cloned.nested as Record<string, ConfigValue>
+		expect(nestedConfig?.nullValue).toBeNull()
 	})
 })

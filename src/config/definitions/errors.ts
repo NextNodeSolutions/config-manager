@@ -9,7 +9,7 @@ export class ConfigError extends Error {
 	constructor(
 		message: string,
 		public code: string,
-		public path?: ConfigPath,
+		public path?: ConfigPath | string[],
 	) {
 		super(message)
 		this.name = 'ConfigError'
@@ -20,7 +20,7 @@ export class ConfigError extends Error {
  * Error thrown when a configuration path is not found
  */
 export class ConfigNotFoundError extends ConfigError {
-	constructor(path: ConfigPath) {
+	constructor(path: ConfigPath | string[]) {
 		const pathString = Array.isArray(path) ? path.join('.') : path
 		super(
 			`Configuration not found at path: ${pathString}`,
@@ -111,5 +111,56 @@ export class ConfigDirNotFoundError extends ConfigError {
 			`Configuration directory not found: ${configDir}. Please ensure the directory exists or specify a valid configDir in ConfigOptions.`,
 			ERROR_CODES.CONFIG_DIR_NOT_FOUND,
 		)
+	}
+}
+
+/**
+ * Error thrown when a specific configuration path is not found
+ * Provides detailed debugging information for production environments
+ */
+export class ConfigurationPathError extends ConfigError {
+	public readonly debugInfo: {
+		requestedPath: string
+		currentEnvironment: string
+		configDirectory?: string
+		suggestion?: string
+	}
+
+	constructor(
+		path: string,
+		environment: string,
+		configDir?: string,
+		suggestion?: string,
+	) {
+		super(
+			`Configuration path '${path}' not found`,
+			ERROR_CODES.CONFIG_NOT_FOUND,
+			path,
+		)
+		this.name = 'ConfigurationPathError'
+
+		this.debugInfo = {
+			requestedPath: path,
+			currentEnvironment: environment,
+			...(configDir && { configDirectory: configDir }),
+			...(suggestion && { suggestion }),
+		}
+	}
+
+	override toString(): string {
+		const details = [
+			`- Requested path: '${this.debugInfo.requestedPath}'`,
+			`- Current environment: '${this.debugInfo.currentEnvironment}'`,
+			this.debugInfo.configDirectory
+				? `- Config directory: '${this.debugInfo.configDirectory}'`
+				: null,
+			this.debugInfo.suggestion
+				? `- Did you mean: '${this.debugInfo.suggestion}'?`
+				: null,
+		]
+			.filter(Boolean)
+			.join('\n')
+
+		return `${this.message}\n\nDebug Information:\n${details}`
 	}
 }

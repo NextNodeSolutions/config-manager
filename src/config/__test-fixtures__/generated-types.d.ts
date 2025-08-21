@@ -6,43 +6,43 @@
 
 declare module '@nextnode/functions-server' {
 	interface UserConfigSchema {
-		app: {
-			name: string
-			version: string
-			features: string[]
-			environment: string
-			debug: boolean
+		readonly app: {
+			readonly name: string
+			readonly version: string
+			readonly features: readonly string[]
+			readonly environment: string
+			readonly debug: boolean
 		}
-		email: {
-			from: string
-			provider: string
-			templates: {
-				welcome: {
-					subject: string
-					body: string
+		readonly email: {
+			readonly from: string
+			readonly provider: string
+			readonly templates: {
+				readonly welcome: {
+					readonly subject: string
+					readonly body: string
 				}
-				projectRequest: {
-					subject: string
-					body: string
+				readonly projectRequest: {
+					readonly subject: string
+					readonly body: string
 				}
 			}
 		}
-		database: {
-			host: string
-			port: number
-			name: string
-			debug: boolean
-			ssl: boolean
-			connectionPoolSize: number
+		readonly database: {
+			readonly host: string
+			readonly port: number
+			readonly name: string
+			readonly debug: boolean
+			readonly ssl: boolean
+			readonly connectionPoolSize: number
 		}
-		api: {
-			baseUrl: string
-			timeout: number
-			retries: number
+		readonly api: {
+			readonly baseUrl: string
+			readonly timeout: number
+			readonly retries: number
 		}
-		monitoring: {
-			enabled: boolean
-			service: string
+		readonly monitoring: {
+			readonly enabled: boolean
+			readonly service: string
 		}
 	}
 }

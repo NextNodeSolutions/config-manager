@@ -3,15 +3,15 @@ import { mkdirSync, writeFileSync, rmSync, existsSync } from 'fs'
 import { join } from 'path'
 import { tmpdir } from 'os'
 
-import { ConfigLoader } from './loader'
+import { ConfigLoader } from './core/loader'
 import {
 	DefaultConfigMissingError,
 	InvalidConfigFormatError,
 	InvalidJsonSyntaxError,
 	ConfigDirNotFoundError,
-} from './errors'
+} from './definitions/errors'
 
-import type { ConfigOptions } from './types'
+import type { ConfigOptions, ConfigValue } from './definitions/types'
 
 describe('ConfigLoader', () => {
 	let tempDir: string
@@ -116,7 +116,8 @@ describe('ConfigLoader', () => {
 			vi.stubEnv('APP_ENV', 'TEST')
 
 			const result = loader.loadConfig()
-			expect(result.app?.env).toBe('test')
+			const appConfig = result.app as Record<string, ConfigValue>
+			expect(appConfig?.env).toBe('test')
 
 			vi.unstubAllEnvs()
 		})
@@ -322,8 +323,10 @@ describe('ConfigLoader', () => {
 				const config1 = loader1.loadConfig('dev')
 				const config2 = loader2.loadConfig('dev')
 
-				expect(config1.app?.name).toBe('App1')
-				expect(config2.app?.name).toBe('App2')
+				const app1Config = config1.app as Record<string, ConfigValue>
+				const app2Config = config2.app as Record<string, ConfigValue>
+				expect(app1Config?.name).toBe('App1')
+				expect(app2Config?.name).toBe('App2')
 			} finally {
 				rmSync(tempDir2, { recursive: true, force: true })
 			}

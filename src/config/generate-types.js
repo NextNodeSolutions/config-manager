@@ -20,10 +20,10 @@ function jsonToTypeScript(value, depth = 0) {
 	if (typeof value === 'boolean') return 'boolean'
 
 	if (Array.isArray(value)) {
-		if (value.length === 0) return 'unknown[]'
+		if (value.length === 0) return 'readonly unknown[]'
 		// Infer array element type from first element
 		const elementType = jsonToTypeScript(value[0], depth)
-		return `${elementType}[]`
+		return `readonly ${elementType}[]`
 	}
 
 	if (typeof value === 'object' && value !== null) {
@@ -34,9 +34,8 @@ function jsonToTypeScript(value, depth = 0) {
 		const properties = keys
 			.map(key => {
 				const propType = jsonToTypeScript(value[key], depth + 1)
-				const optional =
-					value[key] === null || value[key] === undefined ? '?' : ''
-				return `${indent}  ${key}${optional}: ${propType}`
+				// No optional properties - config should be complete and well-defined
+				return `${indent}  readonly ${key}: ${propType}`
 			})
 			.join('\n')
 

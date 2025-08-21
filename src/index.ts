@@ -1,10 +1,7 @@
 /**
- * @nextnode/functions-server
- * Server library for Nextnode Functions
+ * @nextnode/config-manager
+ * Configuration management library with automatic type generation
  */
-
-// Date formatting utilities
-export { formatDate } from './formatting/date'
 
 // Configuration management functions
 export {
@@ -15,10 +12,10 @@ export {
 	clearConfigCache,
 	getAvailableEnvironments,
 	validateRequiredConfig,
-} from './config/core/manager'
+} from './core/manager'
 
 // Core classes
-export { ConfigLoader } from './config/core/loader'
+export { ConfigLoader } from './core/loader'
 
 // Types
 export type {
@@ -27,14 +24,16 @@ export type {
 	ConfigPath,
 	ConfigOptions,
 	BaseConfigSchema,
-} from './config/definitions/types'
+	InferConfigType,
+	MergeConfigs,
+	PathValue,
+	UserConfigSchema,
+	DetectedConfigType,
+	AutoConfigPath,
+} from './definitions/types'
 
 // Utility functions
-export {
-	deepMerge,
-	getNestedValue,
-	setNestedValue,
-} from './config/utils/helpers'
+export { deepMerge, getNestedValue, setNestedValue } from './utils/helpers'
 
 // Error classes
 export {
@@ -47,11 +46,12 @@ export {
 	AppEnvRequiredError,
 	AppEnvUnavailableError,
 	ConfigDirNotFoundError,
-} from './config/definitions/errors'
+	ConfigurationPathError,
+} from './definitions/errors'
 
 // Constants
 export {
 	VALID_ENVIRONMENTS,
 	ERROR_CODES,
 	ENV_VARS,
-} from './config/definitions/constants'
+} from './definitions/constants'

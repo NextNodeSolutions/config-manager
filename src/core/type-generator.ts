@@ -19,7 +19,7 @@ let hasGeneratedTypes = false
 
 /**
  * Main automatic type generation function
- * This is called automatically when functions-server is imported in a user project
+ * This is called automatically when config-manager is imported in a user project
  */
 export const autoGenerateTypes = async (
 	options: AutoTypeOptions = {},
@@ -32,7 +32,7 @@ export const autoGenerateTypes = async (
 	// Detect user project
 	const projectRoot = detectUserProject()
 	if (!projectRoot) {
-		// We're not in a user project (maybe in development of functions-server itself)
+		// We're not in a user project (maybe in development of config-manager itself)
 		return false
 	}
 
@@ -77,15 +77,15 @@ export const resetAutoGeneration = (): void => {
 const detectUserProject = (): string | null => {
 	const currentDir = process.cwd()
 
-	// Check if we're in the functions-server package itself
+	// Check if we're in the config-manager package itself
 	const packageJsonPath = join(currentDir, 'package.json')
 	if (existsSync(packageJsonPath)) {
 		try {
 			const packageJson = JSON.parse(
 				readFileSync(packageJsonPath, 'utf-8'),
 			)
-			if (packageJson.name === '@nextnode/functions-server') {
-				// We're in the functions-server package itself, don't auto-generate
+			if (packageJson.name === '@nextnode/config-manager') {
+				// We're in the config-manager package itself, don't auto-generate
 				return null
 			}
 		} catch {

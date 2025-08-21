@@ -136,12 +136,18 @@ describe('Configuration API', () => {
 			)
 		})
 
-		it('should return undefined for non-existent paths', () => {
-			expect(getConfig('nonexistent')).toBeUndefined()
-			expect(getConfig('app.nonexistent')).toBeUndefined()
-			expect(
+		it('should throw ConfigurationPathError for non-existent paths', () => {
+			expect(() => getConfig('nonexistent')).toThrow(
+				"Configuration path 'nonexistent' not found",
+			)
+			expect(() => getConfig('app.nonexistent')).toThrow(
+				"Configuration path 'app.nonexistent' not found",
+			)
+			expect(() =>
 				getConfig('email.templates.nonexistent.subject'),
-			).toBeUndefined()
+			).toThrow(
+				"Configuration path 'email.templates.nonexistent.subject' not found",
+			)
 		})
 
 		it('should work with automatic type inference', () => {

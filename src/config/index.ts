@@ -41,6 +41,7 @@ export {
 	AppEnvRequiredError,
 	AppEnvUnavailableError,
 	ConfigDirNotFoundError,
+	ConfigurationPathError,
 } from './errors'
 
 // Constants

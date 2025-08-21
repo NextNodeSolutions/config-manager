@@ -1,6 +1,7 @@
 import { ConfigLoader } from './loader'
 import { getNestedValue, getCurrentEnvironment } from './utils'
 import { autoGenerateTypes } from './auto-types'
+import { ConfigurationPathError } from './errors'
 
 import type {
 	ConfigOptions,
@@ -125,11 +126,13 @@ export function getConfig<TOverride = DetectedConfigType>(
 		return config as TOverride
 	}
 
-	// Get nested value using dot notation (guaranteed to exist with strict typing)
+	// Get nested value using dot notation
 	const value = getNestedValue(config, path)
 	if (value === undefined) {
-		throw new Error(
-			`Configuration path '${path}' not found. This should not happen with proper typing.`,
+		throw new ConfigurationPathError(
+			path,
+			resolvedEnv,
+			loader.getConfigDirectory?.(),
 		)
 	}
 	return value as PathValue<UserConfigSchema, AutoConfigPath>
@@ -190,7 +193,7 @@ export function validateRequiredConfig(
 	const missing: string[] = []
 
 	for (const path of requiredPaths) {
-		if (getConfig(path as never, resolvedEnv) === undefined) {
+		if (!hasConfig(path, resolvedEnv)) {
 			missing.push(path)
 		}
 	}

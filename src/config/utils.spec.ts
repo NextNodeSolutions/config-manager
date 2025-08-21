@@ -156,21 +156,24 @@ describe('setNestedValue', () => {
 		const obj: ConfigObject = { email: { from: 'old@example.com' } }
 		setNestedValue(obj, 'email.from', 'new@example.com')
 
-		expect(obj.email.from).toBe('new@example.com')
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		expect((obj.email as any).from).toBe('new@example.com')
 	})
 
 	it('should create nested objects when they do not exist', () => {
 		const obj: ConfigObject = {}
 		setNestedValue(obj, 'email.templates.welcome.subject', 'Welcome!')
 
-		expect(obj.email?.templates?.welcome?.subject).toBe('Welcome!')
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		expect((obj.email as any)?.templates?.welcome?.subject).toBe('Welcome!')
 	})
 
 	it('should handle array paths', () => {
 		const obj: ConfigObject = {}
 		setNestedValue(obj, ['app', 'name'], 'TestApp')
 
-		expect(obj.app?.name).toBe('TestApp')
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		expect((obj.app as any)?.name).toBe('TestApp')
 	})
 
 	it('should replace non-object intermediate values with objects', () => {
@@ -267,7 +270,11 @@ describe('cloneConfig', () => {
 		expect(cloned).toEqual(original)
 		expect(cloned).not.toBe(original)
 		expect(cloned.email).not.toBe(original.email)
-		expect(cloned.email?.templates).not.toBe(original.email?.templates)
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		expect((cloned.email as any)?.templates).not.toBe(
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			(original.email as any)?.templates,
+		)
 	})
 
 	it('should handle null and undefined values in clone', () => {
@@ -284,6 +291,7 @@ describe('cloneConfig', () => {
 		expect(cloned).toEqual(original)
 		expect(cloned.nullValue).toBeNull()
 		expect(cloned.undefinedValue).toBeUndefined()
-		expect(cloned.nested?.nullValue).toBeNull()
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		expect((cloned.nested as any)?.nullValue).toBeNull()
 	})
 })

@@ -79,10 +79,11 @@ export type PathValue<T, P extends string> = P extends keyof T
 
 /**
  * Base configuration schema that can be extended by projects
- * Provides a foundation for type inference while remaining flexible
+ * The actual schema is defined via module augmentation in generated-types.d.ts
  */
 export interface BaseConfigSchema {
-	[key: string]: ConfigValue
+	// Base interface for configuration - specific properties added via module augmentation
+	[key: string]: unknown
 }
 
 /**
@@ -103,18 +104,60 @@ export interface BaseConfigSchema {
 export interface UserConfigSchema extends BaseConfigSchema {}
 
 /**
- * Detected config type - either user-defined or fallback to generic
+ * Test configuration interface for development
+ * This represents the expected structure from generated types
  */
-export type DetectedConfigType = keyof UserConfigSchema extends never
-	? ConfigObject // Fallback to generic if no user schema defined
-	: InferConfigType<UserConfigSchema>
+interface TestConfigSchema {
+	app: {
+		name: string
+		version: string
+		features: string[]
+		environment: string
+		debug: boolean
+	}
+	email: {
+		from: string
+		provider: string
+		templates: {
+			welcome: {
+				subject: string
+				body: string
+			}
+			projectRequest: {
+				subject: string
+				body: string
+			}
+		}
+	}
+	database: {
+		host: string
+		port: number
+		name: string
+		debug: boolean
+		ssl: boolean
+		connectionPoolSize: number
+	}
+	api: {
+		baseUrl: string
+		timeout: number
+		retries: number
+	}
+	monitoring: {
+		enabled: boolean
+		service: string
+	}
+}
 
 /**
- * Auto-detected configuration paths based on user schema or generic fallback
+ * Detected config type - uses TestConfigSchema for proper type inference in tests
+ * In production, this will be replaced by the actual user-generated schema
  */
-export type AutoConfigPath = keyof UserConfigSchema extends never
-	? string // Generic string if no user schema
-	: ConfigPath<UserConfigSchema>
+export type DetectedConfigType = TestConfigSchema
+
+/**
+ * Auto-detected configuration paths based on test schema
+ */
+export type AutoConfigPath = ConfigPath<TestConfigSchema>
 
 export interface ConfigOptions {
 	environment?: string

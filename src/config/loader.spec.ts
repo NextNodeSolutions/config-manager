@@ -116,7 +116,8 @@ describe('ConfigLoader', () => {
 			vi.stubEnv('APP_ENV', 'TEST')
 
 			const result = loader.loadConfig()
-			expect(result.app?.env).toBe('test')
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			expect((result.app as any)?.env).toBe('test')
 
 			vi.unstubAllEnvs()
 		})
@@ -322,8 +323,10 @@ describe('ConfigLoader', () => {
 				const config1 = loader1.loadConfig('dev')
 				const config2 = loader2.loadConfig('dev')
 
-				expect(config1.app?.name).toBe('App1')
-				expect(config2.app?.name).toBe('App2')
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				expect((config1.app as any)?.name).toBe('App1')
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				expect((config2.app as any)?.name).toBe('App2')
 			} finally {
 				rmSync(tempDir2, { recursive: true, force: true })
 			}

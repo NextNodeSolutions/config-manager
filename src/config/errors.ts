@@ -9,7 +9,7 @@ export class ConfigError extends Error {
 	constructor(
 		message: string,
 		public code: string,
-		public path?: ConfigPath,
+		public path?: ConfigPath | string[],
 	) {
 		super(message)
 		this.name = 'ConfigError'
@@ -20,7 +20,7 @@ export class ConfigError extends Error {
  * Error thrown when a configuration path is not found
  */
 export class ConfigNotFoundError extends ConfigError {
-	constructor(path: ConfigPath) {
+	constructor(path: ConfigPath | string[]) {
 		const pathString = Array.isArray(path) ? path.join('.') : path
 		super(
 			`Configuration not found at path: ${pathString}`,

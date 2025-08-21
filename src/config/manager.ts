@@ -3,10 +3,8 @@ import { getNestedValue, getCurrentEnvironment } from './utils'
 import { autoGenerateTypes } from './auto-types'
 
 import type {
-	ConfigPath,
 	ConfigOptions,
 	PathValue,
-	ConfigObject,
 	DetectedConfigType,
 	AutoConfigPath,
 	UserConfigSchema,
@@ -65,7 +63,7 @@ function resolveEnvironment(environment?: string): string {
  * ```
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export function initConfig<TSchema extends ConfigObject = UserConfigSchema>(
+export function initConfig<TSchema = UserConfigSchema>(
 	options: ConfigOptions = {},
 ): void {
 	globalLoader = new ConfigLoader(options)
@@ -103,6 +101,10 @@ export function initConfig<TSchema extends ConfigObject = UserConfigSchema>(
  * ```
  */
 export function getConfig(): DetectedConfigType
+export function getConfig(
+	path: undefined,
+	environment: string,
+): DetectedConfigType
 export function getConfig<TPath extends AutoConfigPath>(
 	path: TPath,
 ): PathValue<DetectedConfigType, TPath> | undefined
@@ -110,17 +112,22 @@ export function getConfig<TPath extends AutoConfigPath>(
 	path: TPath,
 	environment: string,
 ): PathValue<DetectedConfigType, TPath> | undefined
-export function getConfig<TOverride extends ConfigObject = DetectedConfigType>(
-	path?: ConfigPath<TOverride>,
+export function getConfig<TReturn>(path: string): TReturn | undefined
+export function getConfig<TReturn>(
+	path: string,
+	environment: string,
+): TReturn | undefined
+export function getConfig<TOverride = DetectedConfigType>(
+	path?: string,
 	environment?: string,
-): TOverride | PathValue<TOverride, ConfigPath<TOverride>> | undefined {
+): TOverride | unknown | undefined {
 	const loader = ensureGlobalLoader()
 	const resolvedEnv = resolveEnvironment(environment)
 	const config = loader.loadConfig(resolvedEnv)
 
 	// Return entire config if no path specified
 	if (!path) {
-		return config as unknown as TOverride
+		return config as TOverride
 	}
 
 	// Get nested value using dot notation
@@ -135,10 +142,7 @@ export function hasConfig<TPath extends AutoConfigPath>(
 	path: TPath,
 	environment?: string,
 ): boolean
-export function hasConfig<TOverride extends ConfigObject = DetectedConfigType>(
-	path: ConfigPath<TOverride>,
-	environment?: string,
-): boolean {
+export function hasConfig(path: string, environment?: string): boolean {
 	return getConfig(path as never, environment as never) !== undefined
 }
 
@@ -169,14 +173,12 @@ export function getAvailableEnvironments(): string[] {
 /**
  * Validate that required configuration paths exist with automatic type inference
  */
-export function validateRequiredConfig<
-	TOverride extends ConfigObject = DetectedConfigType,
->(
-	requiredPaths: (ConfigPath<TOverride> | string)[],
+export function validateRequiredConfig(
+	requiredPaths: string[],
 	environment?: string,
-): { valid: boolean; missing: (ConfigPath<TOverride> | string)[] } {
+): { valid: boolean; missing: string[] } {
 	const resolvedEnv = resolveEnvironment(environment)
-	const missing: (ConfigPath<TOverride> | string)[] = []
+	const missing: string[] = []
 
 	for (const path of requiredPaths) {
 		if (getConfig(path as never, resolvedEnv) === undefined) {

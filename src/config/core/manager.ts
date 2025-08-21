@@ -1,7 +1,8 @@
 import { ConfigLoader } from './loader'
-import { getNestedValue, getCurrentEnvironment } from './utils'
-import { autoGenerateTypes } from './auto-types'
-import { ConfigurationPathError } from './errors'
+import { getNestedValue } from '../utils/helpers'
+import { resolveEnvironment } from '../utils/validation'
+import { autoGenerateTypes } from './type-generator'
+import { ConfigurationPathError } from '../definitions/errors'
 
 import type {
 	ConfigOptions,
@@ -9,7 +10,7 @@ import type {
 	DetectedConfigType,
 	AutoConfigPath,
 	UserConfigSchema,
-} from './types'
+} from '../definitions/types'
 
 // Global configuration loader instance
 let globalLoader: ConfigLoader | null = null
@@ -19,9 +20,8 @@ let hasAttemptedAutoGeneration = false
 
 /**
  * Ensure global loader is initialized with default options if not already present
- * @returns The global ConfigLoader instance
  */
-function ensureGlobalLoader(): ConfigLoader {
+const ensureGlobalLoader = (): ConfigLoader => {
 	if (!globalLoader) {
 		globalLoader = new ConfigLoader()
 	}
@@ -41,15 +41,6 @@ function ensureGlobalLoader(): ConfigLoader {
 }
 
 /**
- * Resolve environment parameter, falling back to current environment
- * @param environment - Optional environment override
- * @returns Resolved environment string
- */
-function resolveEnvironment(environment?: string): string {
-	return environment || getCurrentEnvironment()
-}
-
-/**
  * Initialize the configuration system with optional type override
  *
  * @param options - Configuration options
@@ -64,9 +55,9 @@ function resolveEnvironment(environment?: string): string {
  * ```
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export function initConfig<TSchema = UserConfigSchema>(
+export const initConfig = <TSchema = UserConfigSchema>(
 	options: ConfigOptions = {},
-): void {
+): void => {
 	globalLoader = new ConfigLoader(options)
 
 	// Automatically generate types for the user project (mandatory)
@@ -161,14 +152,12 @@ export function hasConfig(path: string, environment?: string): boolean {
 /**
  * Get current environment name
  */
-export function getEnvironment(): string {
-	return getCurrentEnvironment()
-}
+export const getEnvironment = (): string => resolveEnvironment()
 
 /**
  * Clear configuration cache (useful for testing or hot reloading)
  */
-export function clearConfigCache(): void {
+export const clearConfigCache = (): void => {
 	if (globalLoader) {
 		globalLoader.clearCache()
 	}
@@ -177,7 +166,7 @@ export function clearConfigCache(): void {
 /**
  * Get all available configuration environments
  */
-export function getAvailableEnvironments(): string[] {
+export const getAvailableEnvironments = (): string[] => {
 	const loader = ensureGlobalLoader()
 	return loader.getAvailableConfigs()
 }
@@ -185,10 +174,10 @@ export function getAvailableEnvironments(): string[] {
 /**
  * Validate that required configuration paths exist with automatic type inference
  */
-export function validateRequiredConfig(
+export const validateRequiredConfig = (
 	requiredPaths: string[],
 	environment?: string,
-): { valid: boolean; missing: string[] } {
+): { valid: boolean; missing: string[] } => {
 	const resolvedEnv = resolveEnvironment(environment)
 	const missing: string[] = []
 

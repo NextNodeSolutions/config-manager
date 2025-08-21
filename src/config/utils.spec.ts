@@ -4,17 +4,16 @@ import {
 	deepMerge,
 	getNestedValue,
 	setNestedValue,
-	validateConfig,
-	getCurrentEnvironment,
 	cloneConfig,
-} from './utils'
+} from './utils/helpers'
+import { validateConfig, getCurrentEnvironment } from './utils/validation'
 import {
 	InvalidEnvironmentError,
 	AppEnvRequiredError,
 	AppEnvUnavailableError,
-} from './errors'
+} from './definitions/errors'
 
-import type { ConfigObject, ConfigValue } from './types'
+import type { ConfigObject, ConfigValue } from './definitions/types'
 
 describe('deepMerge', () => {
 	it('should merge simple objects', () => {

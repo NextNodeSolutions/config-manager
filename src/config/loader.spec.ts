@@ -3,15 +3,15 @@ import { mkdirSync, writeFileSync, rmSync, existsSync } from 'fs'
 import { join } from 'path'
 import { tmpdir } from 'os'
 
-import { ConfigLoader } from './loader'
+import { ConfigLoader } from './core/loader'
 import {
 	DefaultConfigMissingError,
 	InvalidConfigFormatError,
 	InvalidJsonSyntaxError,
 	ConfigDirNotFoundError,
-} from './errors'
+} from './definitions/errors'
 
-import type { ConfigOptions, ConfigValue } from './types'
+import type { ConfigOptions, ConfigValue } from './definitions/types'
 
 describe('ConfigLoader', () => {
 	let tempDir: string

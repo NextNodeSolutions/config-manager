@@ -7,10 +7,10 @@ export {
 	clearConfigCache,
 	getAvailableEnvironments,
 	validateRequiredConfig,
-} from './manager'
+} from './core/manager'
 
 // Core classes
-export { ConfigLoader } from './loader'
+export { ConfigLoader } from './core/loader'
 
 // Types
 export type {
@@ -25,10 +25,10 @@ export type {
 	UserConfigSchema,
 	DetectedConfigType,
 	AutoConfigPath,
-} from './types'
+} from './definitions/types'
 
 // Utility functions
-export { deepMerge, getNestedValue, setNestedValue } from './utils'
+export { deepMerge, getNestedValue, setNestedValue } from './utils/helpers'
 
 // Error classes
 export {
@@ -42,11 +42,11 @@ export {
 	AppEnvUnavailableError,
 	ConfigDirNotFoundError,
 	ConfigurationPathError,
-} from './errors'
+} from './definitions/errors'
 
 // Constants
 export {
 	VALID_ENVIRONMENTS,
 	ERROR_CODES,
 	ENV_VARS,
-} from './constants'
+} from './definitions/constants'

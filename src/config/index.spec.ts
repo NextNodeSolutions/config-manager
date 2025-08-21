@@ -16,7 +16,7 @@ import {
 	validateRequiredConfig,
 } from './index'
 
-import type { ConfigOptions } from './types'
+import type { ConfigOptions } from './definitions/types'
 
 describe('Configuration API', () => {
 	let tempDir: string

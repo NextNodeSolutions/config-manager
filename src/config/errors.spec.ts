@@ -10,8 +10,8 @@ import {
 	AppEnvRequiredError,
 	AppEnvUnavailableError,
 	ConfigDirNotFoundError,
-} from './errors'
-import { ERROR_CODES } from './constants'
+} from './definitions/errors'
+import { ERROR_CODES } from './definitions/constants'
 
 describe('ConfigError', () => {
 	it('should create error with message and code', () => {

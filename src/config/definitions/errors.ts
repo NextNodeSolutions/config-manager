@@ -147,7 +147,7 @@ export class ConfigurationPathError extends ConfigError {
 		}
 	}
 
-	toString(): string {
+	override toString(): string {
 		const details = [
 			`- Requested path: '${this.debugInfo.requestedPath}'`,
 			`- Current environment: '${this.debugInfo.currentEnvironment}'`,

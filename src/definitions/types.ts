@@ -107,7 +107,7 @@ export interface BaseConfigSchema {
  *
  * Example usage in user project:
  * ```typescript
- * declare module '@nextnode/functions-server' {
+ * declare module '@nextnode/config-manager' {
  *   interface UserConfigSchema {
  *     app: { name: string; debug: boolean }
  *     email: { from: string; provider: string }

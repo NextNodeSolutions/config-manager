@@ -1,8 +1,8 @@
-# @nextnode/functions-server
+# @nextnode/config-manager
 
-A TypeScript library for server-side configuration management with **automatic type generation** from your JSON config files. Provides flexible, environment-aware configuration loading with intelligent type inference, eliminating the need for manual type annotations.
+A powerful TypeScript configuration management library with **automatic type generation** from your JSON config files. Provides flexible, environment-aware configuration loading with intelligent type inference, eliminating the need for manual type annotations.
 
-## ✨ What's New
+## ✨ Key Features
 
 ### 🚀 Automatic Type Generation
 - **Zero configuration**: Types are automatically generated from your JSON config files
@@ -15,7 +15,7 @@ A TypeScript library for server-side configuration management with **automatic t
 - **Path-based inference**: `getConfig('email.from')` returns the exact type
 - **Module augmentation**: Optional schema declaration for even more precise types
 
-## Features
+## Core Features
 
 - 🚀 **Automatic type generation** - Generates precise TypeScript types from your JSON config files
 - 🎯 **Intelligent type inference** - No generics needed, automatic type detection from config structure
@@ -31,19 +31,19 @@ A TypeScript library for server-side configuration management with **automatic t
 ## Installation
 
 ```bash
-npm install @nextnode/functions-server
+npm install @nextnode/config-manager
 ```
 
 Or with pnpm:
 
 ```bash
-pnpm add @nextnode/functions-server
+pnpm add @nextnode/config-manager
 ```
 
 Or with yarn:
 
 ```bash
-yarn add @nextnode/functions-server
+yarn add @nextnode/config-manager
 ```
 
 ## Quick Start
@@ -51,7 +51,7 @@ yarn add @nextnode/functions-server
 ### Basic Usage
 
 ```typescript
-import { initConfig, getConfig } from '@nextnode/functions-server'
+import { initConfig, getConfig } from '@nextnode/config-manager'
 
 // Initialize the configuration system (automatically detects config/ directory)
 initConfig({
@@ -131,7 +131,7 @@ The library automatically generates precise TypeScript types from your JSON conf
 
 ### How It Works
 
-1. **Auto-Detection**: When you install `@nextnode/functions-server` in your project, it automatically detects if you have a `config/` directory
+1. **Auto-Detection**: When you install `@nextnode/config-manager` in your project, it automatically detects if you have a `config/` directory
 2. **Smart Generation**: On first use of `initConfig()` or `getConfig()`, it scans your JSON files and generates TypeScript definitions
 3. **Intelligent Caching**: Types are only regenerated when your config files change (using MD5 hash comparison)
 4. **Zero Configuration**: Works out of the box with standard project structures
@@ -142,7 +142,7 @@ The system creates a `types/config.d.ts` file in your project root:
 
 ```typescript
 // types/config.d.ts (auto-generated)
-declare module '@nextnode/functions-server' {
+declare module '@nextnode/config-manager' {
   interface UserConfigSchema {
     app: {
       name: string
@@ -171,7 +171,7 @@ declare module '@nextnode/functions-server' {
 The auto-generation system detects user projects by:
 
 - ✅ Finding a `config/` directory in your project root
-- ✅ Checking that the current project is NOT `@nextnode/functions-server` itself
+- ✅ Checking that the current project is NOT `@nextnode/config-manager` itself
 - ✅ Supporting various config directory names (`config/`, `configs/`, `src/config/`, etc.)
 
 ### Manual Type Generation
@@ -180,10 +180,10 @@ You can also generate types manually using the CLI:
 
 ```bash
 # Generate types for your config directory
-npx @nextnode/functions-server generate-types
+npx @nextnode/config-manager generate-types
 
 # Custom config directory
-npx @nextnode/functions-server generate-types ./my-config ./types/my-config.d.ts
+npx @nextnode/config-manager generate-types ./my-config ./types/my-config.d.ts
 ```
 
 ## API Reference
@@ -228,18 +228,6 @@ const prodEmail = getConfig('email.from', 'production')
 - **Path-based inference**: Return type automatically matches your config structure
 - **Section inference**: Getting `'email'` returns the complete `EmailConfig` interface
 - **Full config inference**: Calling `getConfig()` returns the complete typed configuration
-
-#### `getTypedConfig<T>(path, environment?)`
-Legacy function for enhanced type safety. **Note**: With automatic type generation, `getConfig()` now provides the same level of type safety.
-
-```typescript
-// These are now equivalent with automatic type generation:
-const emailConfig = getTypedConfig('email')  // EmailConfig
-const emailConfig = getConfig('email')       // EmailConfig (same result!)
-
-const appConfig = getTypedConfig('app')      // AppConfig  
-const appConfig = getConfig('app')           // AppConfig (same result!)
-```
 
 #### `hasConfig(path, environment?)`
 Check if a configuration path exists.
@@ -295,7 +283,7 @@ clearConfigCache()
 Deep merge configuration objects.
 
 ```typescript
-import { deepMerge } from '@nextnode/functions-server'
+import { deepMerge } from '@nextnode/config-manager'
 
 const merged = deepMerge(baseConfig, overrideConfig)
 ```
@@ -304,7 +292,7 @@ const merged = deepMerge(baseConfig, overrideConfig)
 Get nested value using dot notation.
 
 ```typescript
-import { getNestedValue } from '@nextnode/functions-server'
+import { getNestedValue } from '@nextnode/config-manager'
 
 const value = getNestedValue(config, 'email.templates.welcome.subject')
 ```
@@ -313,7 +301,7 @@ const value = getNestedValue(config, 'email.templates.welcome.subject')
 Set nested value using dot notation.
 
 ```typescript
-import { setNestedValue } from '@nextnode/functions-server'
+import { setNestedValue } from '@nextnode/config-manager'
 
 setNestedValue(config, 'email.provider', 'sendgrid')
 ```
@@ -326,7 +314,7 @@ The library now **automatically generates** precise TypeScript definitions from 
 
 ```typescript
 // types/config.d.ts (auto-generated from your JSON files)
-declare module '@nextnode/functions-server' {
+declare module '@nextnode/config-manager' {
   interface UserConfigSchema {
     app: {
       name: string
@@ -362,7 +350,7 @@ For even more precise types, you can manually declare your configuration schema:
 
 ```typescript
 // In your project, create a types/config.d.ts file:
-declare module '@nextnode/functions-server' {
+declare module '@nextnode/config-manager' {
   interface UserConfigSchema {
     app: {
       name: string
@@ -388,30 +376,6 @@ declare module '@nextnode/functions-server' {
     }
   }
 }
-```
-
-### Legacy Manual Types (Still Supported)
-
-You can still define interfaces manually if needed:
-
-```typescript
-interface EmailConfig {
-  provider: 'resend' | 'nodemailer'
-  from: string
-  to: string
-  replyTo?: string
-  templates: {
-    projectRequest: {
-      subject: string
-      companyName: string
-      websiteUrl: string
-      companyLogo?: string
-    }
-  }
-}
-
-// Use with explicit generics:
-const emailConfig = getConfig<EmailConfig>('email')
 ```
 
 ## Environment Detection
@@ -502,30 +466,7 @@ const config = getConfig()
 console.log(`Connecting to ${config.database.host}:${config.database.port}`)
 ```
 
-### 5. Use Module Augmentation for Precise Types (Advanced)
-```typescript
-// types/config.d.ts - for precise union types and constraints
-declare module '@nextnode/functions-server' {
-  interface UserConfigSchema {
-    database: {
-      host: string
-      port: number
-      ssl: boolean
-      engine: 'postgresql' | 'mysql' | 'sqlite'  // Specific unions
-    }
-    email: {
-      provider: 'sendgrid' | 'resend' | 'nodemailer'
-      from: string
-      apiKey?: string  // Optional in development
-    }
-    features: {
-      [key: string]: boolean  // Dynamic feature flags
-    }
-  }
-}
-```
-
-### 6. Structure for Multiple Environments
+### 5. Structure for Multiple Environments
 ```
 config/
 ├── default.json         # Base configuration
@@ -534,17 +475,6 @@ config/
 ├── production.json     # Production environment
 ├── test.json          # Test environment
 └── local.json         # Git-ignored local overrides
-```
-
-### 7. Take Advantage of Generated Types
-```typescript
-// ✅ The generated types provide IntelliSense and autocomplete
-const config = getConfig()
-
-// TypeScript will suggest available properties:
-config.database.   // ← Auto-completion shows: host, port, ssl, engine
-config.email.      // ← Auto-completion shows: provider, from, apiKey
-config.features.   // ← Shows all your feature flags
 ```
 
 ## Troubleshooting
@@ -614,7 +544,7 @@ During development, you may need to regenerate types:
 
 ```bash
 # Regenerate types from your project's config files
-node src/config/generate-types.cjs ./config ./types/config.d.ts
+node src/generate-types.js ./config ./types/config.d.ts
 
 # Or use the npm script for test fixtures
 pnpm generate-test-types

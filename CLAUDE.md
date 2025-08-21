@@ -4,44 +4,40 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**@nextnode/functions-server** (v1.0.1) is a comprehensive TypeScript server library for Nextnode projects, providing shared utilities and functions for server-side development. It includes configuration management with automatic type generation, formatting utilities, and will expand to include more server-related functionality.
+**@nextnode/config-manager** (v1.0.0) is a powerful TypeScript configuration management library with automatic type generation from JSON config files. It provides environment-aware configuration loading with intelligent type inference, eliminating the need for manual type annotations.
 
 **Key Features:**
-- **Environment-aware configuration management** with automatic TypeScript type generation
-- **Comprehensive error handling** with custom error classes
+- **Automatic type generation** from JSON configuration files with smart caching
+- **Environment-aware configuration management** with layered loading (default → environment → local)
+- **Intelligent type inference** with path-based type resolution
+- **Zero configuration setup** with automatic project and config directory detection
 - **Pure ESM package** with TypeScript strict mode
-- **Full test coverage** with Vitest and integration testing
+- **Full test coverage** with Vitest and comprehensive integration testing
 - **Automated CI/CD** with quality gates and NPM publishing
 
 ## Architecture
 
-### Current Modules
+### Core Modules
 
-- **Configuration Management** (`src/config/`): Environment-aware config system with automatic type generation
+- **Configuration Management** (`src/core/`): Core configuration system with automatic type generation
   - `manager.ts`: Public API for configuration access (initConfig, getConfig, validateRequiredConfig, etc.)
-  - `loader.ts`: ConfigLoader class handling file loading and caching
-  - `auto-types.ts`: Automatic TypeScript type generation from JSON configs
-  - `utils.ts`: Deep merge, nested value utilities, and environment detection
-  - `errors.ts`: Custom error classes for configuration failures
-  - `constants.ts`: Environment constants and error codes
-  - `types.ts`: TypeScript type definitions for the config system
+  - `loader.ts`: ConfigLoader class handling file loading, caching, and environment merging
+  - `type-generator.ts`: Automatic TypeScript type generation from JSON configs with smart caching
 
-- **Formatting Utilities** (`src/formatting/`): Date and data formatting helpers
-  - `date.ts`: Date formatting functions
+- **Type System** (`src/definitions/`): TypeScript definitions and error handling
+  - `types.ts`: Complete type definitions for the configuration system including advanced types
+  - `errors.ts`: Custom error classes for configuration failures with detailed messages
+  - `constants.ts`: Environment constants, error codes, and configuration defaults
 
-### Planned Modules (to be added)
+- **Utilities** (`src/utils/`): Helper functions and validation
+  - `helpers.ts`: Deep merge, nested value utilities, and object manipulation
+  - `validation.ts`: Configuration validation and environment detection
 
-This library will expand to include:
-- **API Utilities**: Request/response helpers, middleware utilities
-- **Database Helpers**: Connection management, query builders
-- **Authentication**: JWT handling, session management
-- **Validation**: Schema validation, input sanitization
-- **Logging**: Structured logging utilities
-- **Error Handling**: Standardized error responses
-- **Caching**: Cache management utilities
-- **Email Services**: Email sending utilities
-- **File Operations**: File upload/download helpers
-- **Security**: Rate limiting, CORS, security headers
+### Test Infrastructure
+
+- **Test Fixtures** (`src/__test-fixtures__/`): JSON config files for testing all scenarios
+- **Generated Types** (`src/__test-fixtures__/generated-types.d.ts`): Auto-generated test types
+- **Comprehensive Test Coverage**: Unit tests, integration tests, and type generation tests
 
 ## Development Commands
 
@@ -62,9 +58,9 @@ pnpm lint               # ESLint with @nextnode/eslint-plugin (max warnings: 0)
 pnpm lint:fix           # Auto-fix linting issues
 pnpm format             # Format with Biome
 
-# Type Generation (for config module)
+# Type Generation
 pnpm generate-test-types     # Generate types from test fixtures
-pnpm generate-config-types   # Generate types for config directory
+pnpm generate-config-types   # Generate types for config directory (manual CLI)
 
 # Publishing
 pnpm changeset          # Create changeset for version bump
@@ -91,21 +87,21 @@ The project includes comprehensive GitHub Actions workflows:
 ## Testing Strategy
 
 - **Unit Tests**: Individual functions and classes (`*.spec.ts`)
-- **Integration Tests**: Full module integration scenarios
-- **Test Fixtures**: Located in module-specific `__test-fixtures__/` directories
+- **Integration Tests**: Full module integration scenarios (`integration.spec.ts`)
+- **Type Generation Tests**: Automatic type generation validation
+- **Test Fixtures**: Located in `src/__test-fixtures__/` with comprehensive JSON configs
 - **Coverage Requirements**: Aim for >80% coverage on new code
 
 ## Export Structure
 
-The library uses multiple export paths for different modules:
-- **Main entry** (`@nextnode/functions-server`): All public APIs including:
+The library uses a single main export path:
+- **Main entry** (`@nextnode/config-manager`): All public APIs including:
   - Configuration functions: `initConfig`, `getConfig`, `hasConfig`, `validateRequiredConfig`
+  - Core classes: `ConfigLoader`
   - Utility functions: `deepMerge`, `getNestedValue`, `setNestedValue`
   - Error classes: `ConfigError`, `ConfigNotFoundError`, etc.
-  - Types: `ConfigObject`, `ConfigValue`, `ConfigPath`, etc.
-  - Date formatting: `formatDate`
-- **Config subpath** (`@nextnode/functions-server/config`): Config-specific exports
-- Additional subpaths will be added as new modules are implemented
+  - Types: `ConfigObject`, `ConfigValue`, `ConfigPath`, `UserConfigSchema`, etc.
+  - Constants: `VALID_ENVIRONMENTS`, `ERROR_CODES`, `ENV_VARS`
 
 ## TypeScript Configuration
 
@@ -113,36 +109,38 @@ The library uses multiple export paths for different modules:
 - **No Any**: `any` type is forbidden, use proper typing or `unknown` as last resort
 - **ES Modules**: Pure ESM package with no CommonJS support
 - **Target**: ES2023 with ESNext module resolution
+- **Advanced Types**: Complex type inference system with path-based type resolution
 
-## Adding New Modules
+## Automatic Type Generation
 
-When adding new server functionality:
+The library's flagship feature automatically generates TypeScript types from JSON config files:
 
-1. Create a new directory under `src/` for the module
-2. Implement with TypeScript strict compliance
-3. Add comprehensive tests in `.spec.ts` files
-4. Export public API from `src/index.ts`
-5. Consider adding a subpath export in `package.json` if module is substantial
-6. Document the module in this file under "Current Modules"
-7. Run full validation: `pnpm lint && pnpm type-check && pnpm test`
-8. Ensure CI/CD workflows pass before merging PRs
+### How It Works
+1. **Project Detection**: Detects user projects by finding `config/` directories
+2. **Smart Generation**: Scans JSON files and generates precise TypeScript definitions
+3. **Intelligent Caching**: Uses MD5 hashing to only regenerate when files change
+4. **Zero Configuration**: Works automatically with standard project structures
+
+### Generated Files
+- Creates `types/config.d.ts` in user projects
+- Provides module augmentation for `@nextnode/config-manager`
+- Enables perfect type inference without manual type annotations
 
 ## Common Development Tasks
 
 ### Adding New Features
-1. Determine which module the feature belongs to (or create a new module)
-2. Implement with full TypeScript typing (no `any` types)
-3. Add comprehensive tests
-4. Update exports in `src/index.ts`
+1. Implement with full TypeScript typing (no `any` types)
+2. Add comprehensive tests with fixtures
+3. Update exports in `src/index.ts`
+4. Ensure automatic type generation compatibility
 5. Run `pnpm lint && pnpm type-check && pnpm test` before committing
 6. Ensure GitHub Actions workflows pass in PR
 
-### Creating a New Module
-1. Create directory: `src/[module-name]/`
-2. Add main file: `src/[module-name]/index.ts`
-3. Add tests: `src/[module-name]/*.spec.ts`
-4. Export from main index: `src/index.ts`
-5. Optional: Add subpath export in `package.json`
+### Working with Type Generation
+1. Test fixtures are in `src/__test-fixtures__/`
+2. Generated test types are at `src/__test-fixtures__/generated-types.d.ts`
+3. Use `pnpm generate-test-types` to regenerate during development
+4. Type generation logic is in `src/core/type-generator.ts`
 
 ### Publishing Updates
 1. Create changeset: `pnpm changeset`
@@ -152,19 +150,64 @@ When adding new server functionality:
 
 ## Module-Specific Notes
 
-### Configuration Module
-- **Auto-type generation**: Automatically generates TypeScript types from JSON config files
-- **Environment-aware loading**: Supports layered config loading (default → environment → local)
-- **Global management**: Uses singleton pattern with `ensureGlobalLoader()` for consistent state
-- **Type generation location**: Types generated in user's project at `types/config.d.ts`
-- **Auto-trigger**: Type generation occurs automatically on first `initConfig()` or `getConfig()` call
-- **Validation**: Includes `validateRequiredConfig()` for runtime config validation
-- **Environment detection**: Automatic environment detection from NODE_ENV and custom logic
+### Configuration Management System
+- **Singleton Pattern**: Uses global loader instance with `ensureGlobalLoader()` for consistent state
+- **Environment Layering**: Merges default → environment → local configurations
+- **Automatic Type Generation**: Triggers on first `initConfig()` or `getConfig()` call
+- **Path-based Type Inference**: `getConfig('email.provider')` returns exact type from generated schema
+- **Smart Caching**: Both configuration and type generation use intelligent caching
+- **Validation System**: `validateRequiredConfig()` for runtime config validation with detailed error reporting
 
-### Future Modules
-Each new module should:
-- Follow single responsibility principle
-- Export clean, typed public APIs
-- Include comprehensive error handling
-- Provide both synchronous and asynchronous variants where applicable
-- Be fully tree-shakeable
+### Type System Architecture
+- **Module Augmentation**: Uses `declare module` pattern for user project type integration
+- **Advanced Type Inference**: Complex conditional types for path-based type resolution
+- **Deep Readonly**: All generated types are deeply immutable
+- **Union Type Generation**: Automatically infers union types from actual config values
+
+### Error Handling
+- **Detailed Error Classes**: Specific error types for different failure scenarios
+- **Error Codes**: Standardized error codes for programmatic handling
+- **Helpful Messages**: Clear, actionable error messages for developers
+
+## Best Practices
+
+### Code Style
+- Use arrow functions consistently
+- Prefer `const` over `let`
+- Use destructuring when beneficial
+- Avoid `any` types completely
+- Use `unknown` only as last resort
+- Prefer type inference over explicit typing when clear
+
+### Configuration Management
+- Always validate required configuration at startup
+- Use environment variables for secrets
+- Structure configs by feature/domain
+- Leverage automatic type generation instead of manual types
+- Test configuration loading in different environments
+
+### Type Generation
+- Keep JSON configs well-structured and consistent
+- Use meaningful property names that will generate good types
+- Test type generation with various config structures
+- Validate generated types work correctly in user scenarios
+
+## Development Environment
+
+### Prerequisites
+- Node.js >=20.0.0
+- pnpm (specified in packageManager field)
+- TypeScript knowledge for type system work
+
+### Setup
+1. Clone repository
+2. Install dependencies: `pnpm install`
+3. Generate test types: `pnpm generate-test-types`
+4. Run tests: `pnpm test`
+5. Start development with watch mode: `pnpm test:watch`
+
+### Debugging
+- Use `pnpm test:ui` for interactive test debugging
+- Check generated types in `src/__test-fixtures__/generated-types.d.ts`
+- Use `pnpm type-check` to validate TypeScript compilation
+- Enable verbose logging for configuration loading issues

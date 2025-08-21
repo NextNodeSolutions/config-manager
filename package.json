@@ -1,13 +1,16 @@
 {
-  "name": "@nextnode/functions-server",
-  "version": "1.0.2",
-  "description": "A TypeScript server library for Nextnode Functions, designed to simplify function execution and API interactions.",
+  "name": "@nextnode/config-manager",
+  "version": "1.0.0",
+  "description": "A TypeScript configuration management library with automatic type generation from JSON config files. Provides environment-aware configuration loading with intelligent type inference.",
   "keywords": [
-    "api",
-    "functions",
+    "config",
+    "configuration",
+    "environment",
+    "json",
     "nextnode",
-    "server",
-    "typescript"
+    "typescript",
+    "types",
+    "auto-generation"
   ],
   "license": "ISC",
   "author": "Nextnode",
@@ -25,8 +28,8 @@
     "clean": "rm -rf dist",
     "commitlint": "commitlint --edit",
     "format": "biome check --write .",
-    "generate-config-types": "node src/config/generate-types.js",
-    "generate-test-types": "pnpm generate-config-types src/config/__test-fixtures__ src/config/__test-fixtures__/generated-types.d.ts",
+    "generate-config-types": "node src/generate-types.js",
+    "generate-test-types": "pnpm generate-config-types src/__test-fixtures__ src/__test-fixtures__/generated-types.d.ts",
     "lint": "eslint . --max-warnings 0",
     "lint-staged": "lint-staged",
     "lint:fix": "eslint . --max-warnings 0 --fix",
@@ -69,11 +72,6 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
       "require": "./dist/index.js"
-    },
-    "./config": {
-      "types": "./dist/config/index.d.ts",
-      "import": "./dist/config/index.js",
-      "require": "./dist/config/index.js"
     }
   },
   "module": "./dist/index.js",

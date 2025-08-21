@@ -11,7 +11,7 @@ import {
 	ConfigDirNotFoundError,
 } from './errors'
 
-import type { ConfigOptions } from './types'
+import type { ConfigOptions, ConfigValue } from './types'
 
 describe('ConfigLoader', () => {
 	let tempDir: string
@@ -116,8 +116,8 @@ describe('ConfigLoader', () => {
 			vi.stubEnv('APP_ENV', 'TEST')
 
 			const result = loader.loadConfig()
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			expect((result.app as any)?.env).toBe('test')
+			const appConfig = result.app as Record<string, ConfigValue>
+			expect(appConfig?.env).toBe('test')
 
 			vi.unstubAllEnvs()
 		})
@@ -323,10 +323,10 @@ describe('ConfigLoader', () => {
 				const config1 = loader1.loadConfig('dev')
 				const config2 = loader2.loadConfig('dev')
 
-				// eslint-disable-next-line @typescript-eslint/no-explicit-any
-				expect((config1.app as any)?.name).toBe('App1')
-				// eslint-disable-next-line @typescript-eslint/no-explicit-any
-				expect((config2.app as any)?.name).toBe('App2')
+				const app1Config = config1.app as Record<string, ConfigValue>
+				const app2Config = config2.app as Record<string, ConfigValue>
+				expect(app1Config?.name).toBe('App1')
+				expect(app2Config?.name).toBe('App2')
 			} finally {
 				rmSync(tempDir2, { recursive: true, force: true })
 			}

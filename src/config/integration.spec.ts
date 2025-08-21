@@ -36,50 +36,45 @@ describe('Configuration Integration Tests', () => {
 		})
 
 		it('should load and merge configuration from real files', () => {
-			const config = getConfig()
-
-			expect(config.app.name).toBe('NextNode Functions Server')
-			expect(config.app.environment).toBe('test')
-			expect(config.app.debug).toBe(true)
-			expect(config.email.from).toBe('test@nextnode.test')
-			expect(config.email.provider).toBe('mock')
-			expect(config.database.port).toBe(5434)
+			expect(getConfig('app.name')).toBe('NextNode Functions Server')
+			expect(getConfig('app.environment')).toBe('test')
+			expect(getConfig('app.debug')).toBe(true)
+			expect(getConfig('email.from')).toBe('test@nextnode.test')
+			expect(getConfig('email.provider')).toBe('mock')
+			expect(getConfig('database.port')).toBe(5434)
 		})
 
 		it('should correctly merge environment-specific overrides', () => {
-			const devConfig = getConfig(undefined, 'dev')
-			const prodConfig = getConfig(undefined, 'prod')
+			expect(getConfig('app.debug', 'dev')).toBe(true)
+			expect(getConfig('email.provider', 'dev')).toBe('console')
+			expect(getConfig('database.port', 'dev')).toBe(5433)
 
-			expect(devConfig.app.debug).toBe(true)
-			expect(devConfig.email.provider).toBe('console')
-			expect(devConfig.database.port).toBe(5433)
-
-			expect(prodConfig.app.debug).toBe(false)
-			expect(prodConfig.email.provider).toBe('sendgrid')
-			expect(prodConfig.database.ssl).toBe(true)
+			expect(getConfig('app.debug', 'prod')).toBe(false)
+			expect(getConfig('email.provider', 'prod')).toBe('sendgrid')
+			expect(getConfig('database.ssl', 'prod')).toBe(true)
 		})
 
 		it('should preserve default values when not overridden', () => {
-			const config = getConfig(undefined, 'prod')
-
-			expect(config.app.name).toBe('NextNode Functions Server')
-			expect(config.app.version).toBe('1.0.0')
-			expect(config.database.name).toBe('nextnode_production')
-			expect(config.api.retries).toBe(5)
+			expect(getConfig('app.name', 'prod')).toBe(
+				'NextNode Functions Server',
+			)
+			expect(getConfig('app.version', 'prod')).toBe('1.0.0')
+			expect(getConfig('database.name', 'prod')).toBe(
+				'nextnode_production',
+			)
+			expect(getConfig('api.retries', 'prod')).toBe(5)
 		})
 
 		it('should handle deep merging of nested objects', () => {
-			const devConfig = getConfig(undefined, 'dev')
-
-			expect(devConfig?.email?.templates?.welcome?.subject).toBe(
+			expect(getConfig('email.templates.welcome.subject', 'dev')).toBe(
 				'[DEV] Welcome to NextNode',
 			)
-			expect(devConfig?.email?.templates?.welcome?.body).toBe(
+			expect(getConfig('email.templates.welcome.body', 'dev')).toBe(
 				'Welcome to our platform!',
 			)
-			expect(devConfig?.email?.templates?.projectRequest?.subject).toBe(
-				'New Project Request',
-			)
+			expect(
+				getConfig('email.templates.projectRequest.subject', 'dev'),
+			).toBe('New Project Request')
 		})
 	})
 
@@ -90,24 +85,18 @@ describe('Configuration Integration Tests', () => {
 		})
 
 		it('should provide access to configuration sections', () => {
-			const appConfig = getConfig('app')
-			const emailConfig = getConfig('email')
-
-			expect(appConfig?.name).toBe('NextNode Functions Server')
-			expect(appConfig?.features).toEqual(['config'])
-			expect(emailConfig?.from).toBe('test@nextnode.test')
-			expect(emailConfig?.templates?.welcome?.subject).toBe(
+			expect(getConfig('app.name')).toBe('NextNode Functions Server')
+			expect(getConfig('app.features')).toEqual(['config'])
+			expect(getConfig('email.from')).toBe('test@nextnode.test')
+			expect(getConfig('email.templates.welcome.subject')).toBe(
 				'[TEST] Welcome',
 			)
 		})
 
 		it('should work with different environments', () => {
-			const prodAppConfig = getConfig('app', 'prod')
-			const devEmailConfig = getConfig('email', 'dev')
-
-			expect(prodAppConfig?.debug).toBe(false)
-			expect(prodAppConfig?.features).toContain('monitoring')
-			expect(devEmailConfig?.provider).toBe('console')
+			expect(getConfig('app.debug', 'prod')).toBe(false)
+			expect(getConfig('app.features', 'prod')).toContain('monitoring')
+			expect(getConfig('email.provider', 'dev')).toBe('console')
 		})
 	})
 
@@ -163,21 +152,19 @@ describe('Configuration Integration Tests', () => {
 		it('should handle development environment correctly', () => {
 			vi.stubEnv('APP_ENV', 'DEV')
 
-			const config = getConfig()
-			expect(config.app.debug).toBe(true)
-			expect(config.email.provider).toBe('console')
-			expect(config.api.timeout).toBe(10000)
+			expect(getConfig('app.debug')).toBe(true)
+			expect(getConfig('email.provider')).toBe('console')
+			expect(getConfig('api.timeout')).toBe(10000)
 			expect(getEnvironment()).toBe('dev')
 		})
 
 		it('should handle production environment correctly', () => {
 			vi.stubEnv('APP_ENV', 'PROD')
 
-			const config = getConfig()
-			expect(config.app.debug).toBe(false)
-			expect(config.email.provider).toBe('sendgrid')
-			expect(config.database.ssl).toBe(true)
-			expect(config.monitoring.enabled).toBe(true)
+			expect(getConfig('app.debug')).toBe(false)
+			expect(getConfig('email.provider')).toBe('sendgrid')
+			expect(getConfig('database.ssl')).toBe(true)
+			expect(getConfig('monitoring.enabled')).toBe(true)
 			expect(getEnvironment()).toBe('prod')
 		})
 	})
@@ -261,29 +248,26 @@ describe('Configuration Integration Tests', () => {
 		})
 
 		it('should demonstrate correct precedence order', () => {
-			const config = getConfig(undefined, 'prod')
-
-			expect(config.app.name).toBe('NextNode Functions Server')
-			expect(config.app.features).toEqual([
+			expect(getConfig('app.name', 'prod')).toBe(
+				'NextNode Functions Server',
+			)
+			expect(getConfig('app.features', 'prod')).toEqual([
 				'config',
 				'logging',
 				'metrics',
 				'monitoring',
 			])
-			expect(config.email.from).toBe('noreply@nextnode.com')
-			expect(config.email.provider).toBe('sendgrid')
+			expect(getConfig('email.from', 'prod')).toBe('noreply@nextnode.com')
+			expect(getConfig('email.provider', 'prod')).toBe('sendgrid')
 		})
 
 		it('should preserve arrays from environment overrides', () => {
-			const defaultConfig = getConfig(undefined, 'dev')
-			const prodConfig = getConfig(undefined, 'prod')
-
-			expect(defaultConfig?.app?.features).toEqual([
+			expect(getConfig('app.features', 'dev')).toEqual([
 				'config',
 				'logging',
 				'metrics',
 			])
-			expect(prodConfig?.app?.features).toEqual([
+			expect(getConfig('app.features', 'prod')).toEqual([
 				'config',
 				'logging',
 				'metrics',

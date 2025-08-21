@@ -107,31 +107,32 @@ export function getConfig(
 ): DetectedConfigType
 export function getConfig<TPath extends AutoConfigPath>(
 	path: TPath,
-): PathValue<DetectedConfigType, TPath> | undefined
+): PathValue<UserConfigSchema, TPath>
 export function getConfig<TPath extends AutoConfigPath>(
 	path: TPath,
 	environment: string,
-): PathValue<DetectedConfigType, TPath> | undefined
-export function getConfig<TReturn>(path: string): TReturn | undefined
-export function getConfig<TReturn>(
-	path: string,
-	environment: string,
-): TReturn | undefined
+): PathValue<UserConfigSchema, TPath>
 export function getConfig<TOverride = DetectedConfigType>(
 	path?: string,
 	environment?: string,
-): TOverride | unknown | undefined {
+): TOverride | PathValue<UserConfigSchema, AutoConfigPath> {
 	const loader = ensureGlobalLoader()
 	const resolvedEnv = resolveEnvironment(environment)
 	const config = loader.loadConfig(resolvedEnv)
 
-	// Return entire config if no path specified
+	// Return entire config if no path specified (deeply readonly)
 	if (!path) {
 		return config as TOverride
 	}
 
-	// Get nested value using dot notation
-	return getNestedValue(config, path)
+	// Get nested value using dot notation (guaranteed to exist with strict typing)
+	const value = getNestedValue(config, path)
+	if (value === undefined) {
+		throw new Error(
+			`Configuration path '${path}' not found. This should not happen with proper typing.`,
+		)
+	}
+	return value as PathValue<UserConfigSchema, AutoConfigPath>
 }
 
 /**
@@ -143,7 +144,15 @@ export function hasConfig<TPath extends AutoConfigPath>(
 	environment?: string,
 ): boolean
 export function hasConfig(path: string, environment?: string): boolean {
-	return getConfig(path as never, environment as never) !== undefined
+	try {
+		const value = getNestedValue(
+			ensureGlobalLoader().loadConfig(resolveEnvironment(environment)),
+			path,
+		)
+		return value !== undefined
+	} catch {
+		return false
+	}
 }
 
 /**

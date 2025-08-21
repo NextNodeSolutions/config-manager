@@ -14,7 +14,7 @@ import {
 	AppEnvUnavailableError,
 } from './errors'
 
-import type { ConfigObject } from './types'
+import type { ConfigObject, ConfigValue } from './types'
 
 describe('deepMerge', () => {
 	it('should merge simple objects', () => {
@@ -156,24 +156,32 @@ describe('setNestedValue', () => {
 		const obj: ConfigObject = { email: { from: 'old@example.com' } }
 		setNestedValue(obj, 'email.from', 'new@example.com')
 
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		expect((obj.email as any).from).toBe('new@example.com')
+		const emailConfig = obj.email as Record<string, ConfigValue>
+		expect(emailConfig.from).toBe('new@example.com')
 	})
 
 	it('should create nested objects when they do not exist', () => {
 		const obj: ConfigObject = {}
 		setNestedValue(obj, 'email.templates.welcome.subject', 'Welcome!')
 
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		expect((obj.email as any)?.templates?.welcome?.subject).toBe('Welcome!')
+		const emailConfig = obj.email as Record<string, ConfigValue>
+		const templatesConfig = emailConfig?.templates as Record<
+			string,
+			ConfigValue
+		>
+		const welcomeConfig = templatesConfig?.welcome as Record<
+			string,
+			ConfigValue
+		>
+		expect(welcomeConfig?.subject).toBe('Welcome!')
 	})
 
 	it('should handle array paths', () => {
 		const obj: ConfigObject = {}
 		setNestedValue(obj, ['app', 'name'], 'TestApp')
 
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		expect((obj.app as any)?.name).toBe('TestApp')
+		const appConfig = obj.app as Record<string, ConfigValue>
+		expect(appConfig?.name).toBe('TestApp')
 	})
 
 	it('should replace non-object intermediate values with objects', () => {
@@ -270,10 +278,13 @@ describe('cloneConfig', () => {
 		expect(cloned).toEqual(original)
 		expect(cloned).not.toBe(original)
 		expect(cloned.email).not.toBe(original.email)
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		expect((cloned.email as any)?.templates).not.toBe(
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			(original.email as any)?.templates,
+		const clonedEmailConfig = cloned.email as Record<string, ConfigValue>
+		const originalEmailConfig = original.email as Record<
+			string,
+			ConfigValue
+		>
+		expect(clonedEmailConfig?.templates).not.toBe(
+			originalEmailConfig?.templates,
 		)
 	})
 
@@ -291,7 +302,7 @@ describe('cloneConfig', () => {
 		expect(cloned).toEqual(original)
 		expect(cloned.nullValue).toBeNull()
 		expect(cloned.undefinedValue).toBeUndefined()
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		expect((cloned.nested as any)?.nullValue).toBeNull()
+		const nestedConfig = cloned.nested as Record<string, ConfigValue>
+		expect(nestedConfig?.nullValue).toBeNull()
 	})
 })

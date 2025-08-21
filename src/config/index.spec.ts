@@ -116,15 +116,15 @@ describe('Configuration API', () => {
 			initConfig({ configDir: tempDir })
 		})
 
-		it('should get entire config when no path specified', () => {
-			const config = getConfig()
+		it('should get configuration values with proper typing', () => {
+			// Test that individual paths work correctly
+			expect(getConfig('app.name')).toBe('TestApp')
+			expect(getConfig('app.debug')).toBe(true)
+			expect(getConfig('email.from')).toBe('test-env@example.com')
 
-			expect(config).toHaveProperty('app')
-			expect(config).toHaveProperty('email')
-			// These should work without optional chaining thanks to precise typing!
-			expect(config.app.name).toBe('TestApp')
-			expect(config.app.debug).toBe(true)
-			expect(config.email.from).toBe('test-env@example.com')
+			// Test that hasConfig works for different paths
+			expect(hasConfig('app')).toBe(true)
+			expect(hasConfig('email')).toBe(true)
 		})
 
 		it('should get nested configuration values', () => {
@@ -144,10 +144,10 @@ describe('Configuration API', () => {
 			).toBeUndefined()
 		})
 
-		it('should work with type parameters', () => {
-			const appName = getConfig<string>('app.name')
-			const features = getConfig<string[]>('app.features')
-			const debug = getConfig<boolean>('app.debug')
+		it('should work with automatic type inference', () => {
+			const appName = getConfig('app.name')
+			const features = getConfig('app.features')
+			const debug = getConfig('app.debug')
 
 			expect(typeof appName).toBe('string')
 			expect(Array.isArray(features)).toBe(true)

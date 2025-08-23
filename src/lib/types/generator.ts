@@ -33,8 +33,10 @@ export const autoGenerateTypes = async (
 	const projectRoot = detectUserProject()
 	if (!projectRoot) {
 		// We're not in a user project (maybe in development of config-manager itself)
-		console.log('❌ No user project detected, skipping type generation')
-		console.log('Current directory:', process.cwd())
+		if (process.env.NODE_ENV !== 'test') {
+			console.log('❌ No user project detected, skipping type generation')
+			console.log('Current directory:', process.cwd())
+		}
 		return false
 	}
 

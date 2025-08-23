@@ -3,25 +3,26 @@
 	"version": "2.0.0",
 	"description": "A TypeScript configuration management library with automatic type generation from JSON config files. Provides environment-aware configuration loading with intelligent type inference.",
 	"keywords": [
+		"auto-generation",
 		"config",
 		"configuration",
 		"environment",
 		"json",
 		"nextnode",
-		"typescript",
 		"types",
-		"auto-generation"
+		"typescript"
 	],
 	"license": "ISC",
 	"author": "Nextnode",
 	"files": ["README.md", "dist/"],
 	"main": "./dist/index.js",
 	"bin": {
-		"config-manager-generate": "./dist/generate-types.js"
+		"generate-config": "./dist/generate-types.js"
 	},
 	"scripts": {
 		"prebuild": "npm run clean",
 		"build": "tsc -p tsconfig.build.json",
+		"postbuild": "chmod +x dist/generate-types.js",
 		"changeset": "changeset",
 		"changeset:publish": "changeset publish",
 		"changeset:version": "changeset version",

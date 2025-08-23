@@ -15,25 +15,12 @@ import type {
 // Global configuration loader instance
 let globalLoader: ConfigLoader | null = null
 
-// Track if we've attempted auto type generation
-let hasAttemptedAutoGeneration = false
-
 /**
  * Ensure global loader is initialized with default options if not already present
  */
 const ensureGlobalLoader = (): ConfigLoader => {
 	if (!globalLoader) {
 		globalLoader = new ConfigLoader()
-	}
-
-	// Auto-generate types on first usage if not already done
-	if (!hasAttemptedAutoGeneration) {
-		hasAttemptedAutoGeneration = true
-		// Fire and forget - don't block execution
-		autoGenerateTypes().catch(error => {
-			console.error('❌ Type generation failed:', error)
-			// Don't throw here as it would break the loader
-		})
 	}
 
 	return globalLoader

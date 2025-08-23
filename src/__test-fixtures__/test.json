@@ -18,11 +18,17 @@
 		"host": "localhost",
 		"port": 5434,
 		"name": "nextnode_test",
-		"debug": false
+		"debug": false,
+		"ssl": false,
+		"connectionPoolSize": 5
 	},
 	"api": {
 		"baseUrl": "http://localhost:3001",
 		"timeout": 1000,
 		"retries": 1
+	},
+	"monitoring": {
+		"enabled": false,
+		"service": "disabled"
 	}
 }

@@ -5,46 +5,71 @@
  */
 
 declare module '@nextnode/config-manager' {
-  interface UserConfigSchema {
-  readonly app: {
-    readonly name: string
-    readonly version: string
-    readonly features: readonly string[]
-    readonly environment: string
-    readonly debug: boolean
-  }
-  readonly email: {
-    readonly from: string
-    readonly provider: string
-    readonly templates: {
-      readonly welcome: {
-        readonly subject: string
-        readonly body: string
-      }
-      readonly projectRequest: {
-        readonly subject: string
-        readonly body: string
-      }
-    }
-  }
-  readonly database: {
-    readonly host: string
-    readonly port: number
-    readonly name: string
-    readonly debug: boolean
-    readonly ssl: boolean
-    readonly connectionPoolSize: number
-  }
-  readonly api: {
-    readonly baseUrl: string
-    readonly timeout: number
-    readonly retries: number
-  }
-  readonly monitoring: {
-    readonly enabled: boolean
-    readonly service: string
-  }
-}
+	interface UserConfigSchema {
+		readonly app: {
+			readonly name: 'NextNode Functions Server'
+			readonly version: '1.0.0'
+			readonly features:
+				| readonly ('config' | 'logging' | 'metrics')[]
+				| readonly ('config' | 'logging')[]
+				| readonly ('config' | 'logging' | 'metrics' | 'monitoring')[]
+				| readonly 'config'[]
+			readonly environment:
+				| 'default'
+				| 'development'
+				| 'production'
+				| 'test'
+			readonly debug: true | false
+		}
+		readonly email: {
+			readonly from:
+				| 'noreply@nextnode.com'
+				| 'dev@nextnode.local'
+				| 'test@nextnode.test'
+			readonly provider: 'default' | 'console' | 'sendgrid' | 'mock'
+			readonly templates: {
+				readonly welcome: {
+					readonly subject:
+						| 'Welcome to NextNode'
+						| '[DEV] Welcome to NextNode'
+						| '[TEST] Welcome'
+					readonly body:
+						| 'Welcome to our platform!'
+						| 'Welcome to our development environment!'
+						| "Thank you for joining NextNode. We're excited to have you on board!"
+						| 'Test welcome message'
+				}
+				readonly projectRequest: {
+					readonly subject: 'New Project Request'
+					readonly body: 'A new project has been requested.'
+				}
+			}
+		}
+		readonly database: {
+			readonly host: 'localhost' | 'prod-db.nextnode.com'
+			readonly port: 5432 | 5433 | 5434
+			readonly name:
+				| 'nextnode_default'
+				| 'nextnode_dev'
+				| 'nextnode_production'
+				| 'nextnode_test'
+			readonly debug: true | false
+			readonly ssl: false | true
+			readonly connectionPoolSize: 10 | 20 | 5
+		}
+		readonly api: {
+			readonly baseUrl:
+				| 'https://api.nextnode.com'
+				| 'http://localhost:3000'
+				| 'http://localhost:3001'
+			readonly timeout: 5000 | 10000 | 3000 | 1000
+			readonly retries: 3 | 5 | 1
+		}
+		readonly monitoring: {
+			readonly enabled: false | true
+			readonly service: 'console' | 'datadog' | 'disabled'
+		}
+	}
 }
 
 export {}

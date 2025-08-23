@@ -37,7 +37,6 @@ export const autoGenerateTypes = async (
 		console.log('Current directory:', process.cwd())
 		return false
 	}
-	console.log('✅ Detected user project:', projectRoot)
 
 	// Get config directory
 	const configDir = getConfigDirectory(projectRoot, options.configDir)
@@ -53,12 +52,13 @@ export const autoGenerateTypes = async (
 
 	// Check if generation is needed
 	if (!options.force && !hasConfigChanged(configDir, outputFile)) {
+		console.log('⚡ Config types are up to date')
 		hasGeneratedTypes = true
 		return true
 	}
 
 	try {
-		await generateTypes(configDir, outputFile)
+		await generateTypes(configDir, outputFile, projectRoot)
 		hasGeneratedTypes = true
 		return true
 	} catch (error) {
@@ -183,10 +183,10 @@ const validateOutputPath = (
 const generateTypes = async (
 	configDir: string,
 	outputFile: string,
+	projectRoot: string,
 ): Promise<void> => {
 	try {
 		// Validate output path for security
-		const projectRoot = process.cwd()
 		if (!validateOutputPath(outputFile, projectRoot)) {
 			throw new Error(
 				`Invalid output path: ${outputFile}. Path traversal detected.`,
@@ -211,7 +211,14 @@ const generateTypes = async (
 		)
 
 		writeFileSync(outputFile, contentWithHash)
-		console.log(`✅ Generated config types: ${outputFile}`)
+
+		// Create relative paths from project root
+		const relativeOutputFile = relative(projectRoot, outputFile)
+		const relativeConfigDir = relative(projectRoot, configDir)
+
+		console.log(
+			`✅ Generated config types: ${relativeOutputFile} (from ${relativeConfigDir})`,
+		)
 	} catch (error) {
 		console.error(`❌ Failed to generate config types:`, error)
 		throw error

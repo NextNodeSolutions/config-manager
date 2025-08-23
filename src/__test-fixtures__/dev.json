@@ -1,14 +1,16 @@
 {
 	"app": {
 		"debug": true,
-		"environment": "development"
+		"environment": "development",
+		"features": ["config", "logging"]
 	},
 	"email": {
 		"from": "dev@nextnode.local",
 		"provider": "console",
 		"templates": {
 			"welcome": {
-				"subject": "[DEV] Welcome to NextNode"
+				"subject": "[DEV] Welcome to NextNode",
+				"body": "Welcome to our development environment!"
 			}
 		}
 	},
@@ -16,10 +18,17 @@
 		"host": "localhost",
 		"port": 5433,
 		"name": "nextnode_dev",
-		"debug": true
+		"debug": true,
+		"ssl": false,
+		"connectionPoolSize": 10
 	},
 	"api": {
 		"baseUrl": "http://localhost:3000",
-		"timeout": 10000
+		"timeout": 10000,
+		"retries": 3
+	},
+	"monitoring": {
+		"enabled": false,
+		"service": "console"
 	}
 }

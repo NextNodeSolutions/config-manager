@@ -12,90 +12,252 @@ import {
 	existsSync,
 	mkdirSync,
 } from 'node:fs'
-import { join, extname, basename, dirname } from 'node:path'
+import { join, extname, basename, dirname, relative } from 'node:path'
 
 /**
- * Convert a JSON value to its TypeScript type representation
+ * Collect all possible values for each property path across all configs
  */
-function jsonToTypeScript(value, depth = 0) {
-	const indent = '  '.repeat(depth)
-
-	if (value === null) return 'null'
-	if (typeof value === 'string') return 'string'
-	if (typeof value === 'number') return 'number'
-	if (typeof value === 'boolean') return 'boolean'
-
-	if (Array.isArray(value)) {
-		if (value.length === 0) return 'readonly unknown[]'
-		// Infer array element type from first element
-		const elementType = jsonToTypeScript(value[0], depth)
-		return `readonly ${elementType}[]`
-	}
-
-	if (typeof value === 'object' && value !== null) {
-		const keys = Object.keys(value)
-
-		if (keys.length === 0) return 'Record<string, unknown>'
-
-		const properties = keys
-			.map(key => {
-				const propType = jsonToTypeScript(value[key], depth + 1)
-				// No optional properties - config should be complete and well-defined
-				return `${indent}  readonly ${key}: ${propType}`
-			})
-			.join('\n')
-
-		return `{\n${properties}\n${indent}}`
-	}
-
-	return 'unknown'
-}
-
-/**
- * Deep merge two objects recursively
- */
-function deepMerge(target, source) {
-	const result = { ...target }
-
-	for (const key in source) {
-		if (Object.prototype.hasOwnProperty.call(source, key)) {
-			if (
-				typeof source[key] === 'object' &&
-				source[key] !== null &&
-				!Array.isArray(source[key]) &&
-				typeof result[key] === 'object' &&
-				result[key] !== null &&
-				!Array.isArray(result[key])
-			) {
-				result[key] = deepMerge(result[key], source[key])
-			} else {
-				result[key] = source[key]
-			}
-		}
-	}
-
-	return result
-}
-
-/**
- * Merge multiple JSON objects and infer their combined type
- */
-function mergeJsonTypes(configs) {
-	// Start with default config as base
-	let mergedStructure = configs.default || {}
-
-	// Merge all environment configs to get all possible properties
-	Object.entries(configs).forEach(([env, config]) => {
-		if (
-			env !== 'default' &&
+function collectAllValues(configs, currentPath = '', allValues = new Map()) {
+	const configValues = Object.values(configs).filter(
+		config =>
+			config !== null &&
 			typeof config === 'object' &&
-			!Array.isArray(config)
-		) {
-			mergedStructure = deepMerge(mergedStructure, config)
+			!Array.isArray(config),
+	)
+
+	if (configValues.length === 0) return allValues
+
+	// Get all possible keys from all configs
+	const allKeys = new Set()
+	configValues.forEach(config => {
+		Object.keys(config).forEach(key => allKeys.add(key))
+	})
+
+	allKeys.forEach(key => {
+		const fullPath = currentPath ? `${currentPath}.${key}` : key
+		const valuesForKey = new Set()
+
+		configValues.forEach(config => {
+			if (config[key] !== undefined) {
+				const value = config[key]
+				if (
+					typeof value === 'object' &&
+					value !== null &&
+					!Array.isArray(value)
+				) {
+					// Recursively collect for nested objects
+					const nestedConfigs = {}
+					Object.entries(configs).forEach(([env, envConfig]) => {
+						if (envConfig && envConfig[key]) {
+							nestedConfigs[env] = envConfig[key]
+						}
+					})
+					collectAllValues(nestedConfigs, fullPath, allValues)
+				} else {
+					valuesForKey.add(value)
+				}
+			}
+		})
+
+		if (valuesForKey.size > 0) {
+			allValues.set(fullPath, valuesForKey)
 		}
 	})
 
-	return jsonToTypeScript(mergedStructure)
+	return allValues
+}
+
+/**
+ * Create TypeScript type from collected values with union types for multiple values
+ */
+function createUnionType(values) {
+	if (values.size === 0) return 'unknown'
+	if (values.size === 1) {
+		const value = Array.from(values)[0]
+		if (value === null) return 'null'
+		if (typeof value === 'string') return `'${value.replace(/'/g, "\\'")}'`
+		if (typeof value === 'number') return value.toString()
+		if (typeof value === 'boolean') return value.toString()
+		if (Array.isArray(value)) {
+			const uniqueTypes = new Set()
+			value.forEach(item => {
+				if (typeof item === 'string')
+					uniqueTypes.add(`'${item.replace(/'/g, "\\'")}'`)
+				else if (typeof item === 'number')
+					uniqueTypes.add(item.toString())
+				else if (typeof item === 'boolean')
+					uniqueTypes.add(item.toString())
+				else if (item === null) uniqueTypes.add('null')
+				else uniqueTypes.add('unknown')
+			})
+			const elementType = Array.from(uniqueTypes).join(' | ')
+			return `readonly (${elementType})[]`
+		}
+		return 'unknown'
+	}
+
+	// Multiple values - create union type
+	const types = Array.from(values).map(value => {
+		if (value === null) return 'null'
+		if (typeof value === 'string') return `'${value.replace(/'/g, "\\'")}'`
+		if (typeof value === 'number') return value.toString()
+		if (typeof value === 'boolean') return value.toString()
+		if (Array.isArray(value)) {
+			const uniqueTypes = new Set()
+			value.forEach(item => {
+				if (typeof item === 'string')
+					uniqueTypes.add(`'${item.replace(/'/g, "\\'")}'`)
+				else if (typeof item === 'number')
+					uniqueTypes.add(item.toString())
+				else if (typeof item === 'boolean')
+					uniqueTypes.add(item.toString())
+				else if (item === null) uniqueTypes.add('null')
+				else uniqueTypes.add('unknown')
+			})
+			const elementType = Array.from(uniqueTypes).join(' | ')
+			return `readonly (${elementType})[]`
+		}
+		return 'unknown'
+	})
+
+	return types.join(' | ')
+}
+
+/**
+ * Generate merged structure with union types
+ */
+function generateMergedStructure(
+	configs,
+	allValues,
+	currentPath = '',
+	depth = 0,
+) {
+	const indent = '  '.repeat(depth)
+	const configValues = Object.values(configs).filter(
+		config =>
+			config !== null &&
+			typeof config === 'object' &&
+			!Array.isArray(config),
+	)
+
+	if (configValues.length === 0) return 'Record<string, unknown>'
+
+	// Get all possible keys from all configs
+	const allKeys = new Set()
+	configValues.forEach(config => {
+		Object.keys(config).forEach(key => allKeys.add(key))
+	})
+
+	const properties = Array.from(allKeys).map(key => {
+		const fullPath = currentPath ? `${currentPath}.${key}` : key
+
+		// Check if this path has collected values (primitive types)
+		if (allValues.has(fullPath)) {
+			const values = allValues.get(fullPath)
+			const unionType = createUnionType(values)
+			return `${indent}  readonly ${key}: ${unionType}`
+		}
+
+		// This must be a nested object - recurse
+		const nestedConfigs = {}
+		Object.entries(configs).forEach(([env, envConfig]) => {
+			if (
+				envConfig &&
+				envConfig[key] &&
+				typeof envConfig[key] === 'object' &&
+				!Array.isArray(envConfig[key])
+			) {
+				nestedConfigs[env] = envConfig[key]
+			}
+		})
+
+		if (Object.keys(nestedConfigs).length > 0) {
+			const nestedType = generateMergedStructure(
+				nestedConfigs,
+				allValues,
+				fullPath,
+				depth + 1,
+			)
+			return `${indent}  readonly ${key}: ${nestedType}`
+		}
+
+		return `${indent}  readonly ${key}: unknown`
+	})
+
+	return `{\n${properties.join('\n')}\n${indent}}`
+}
+
+/**
+ * Merge multiple JSON objects and infer their combined type with union types
+ */
+function mergeJsonTypes(configs) {
+	// Collect all possible values for each property path
+	const allValues = collectAllValues(configs)
+
+	// Generate the structure with union types
+	return generateMergedStructure(configs, allValues)
+}
+
+/**
+ * Simple validation to ensure all configs have consistent structure
+ * Note: 'default' is excluded as it's the base merged with all environments
+ */
+function validateConfigConsistency(configs) {
+	const environments = Object.keys(configs).filter(
+		env =>
+			env !== 'default' && // Exclude default - it's the base for all environments
+			configs[env] !== null &&
+			typeof configs[env] === 'object',
+	)
+
+	if (environments.length < 2) return // No validation needed for single environment
+
+	// Get all property paths from all environments
+	const getAllPaths = (obj, prefix = '') => {
+		const paths = new Set()
+		if (!obj || typeof obj !== 'object' || Array.isArray(obj)) return paths
+
+		Object.keys(obj).forEach(key => {
+			const fullPath = prefix ? `${prefix}.${key}` : key
+			paths.add(fullPath)
+			if (
+				typeof obj[key] === 'object' &&
+				obj[key] !== null &&
+				!Array.isArray(obj[key])
+			) {
+				getAllPaths(obj[key], fullPath).forEach(path => paths.add(path))
+			}
+		})
+		return paths
+	}
+
+	// Collect all paths from all environments
+	const allPaths = new Map() // path -> Set of environments that have it
+	environments.forEach(env => {
+		const paths = getAllPaths(configs[env])
+		paths.forEach(path => {
+			if (!allPaths.has(path)) allPaths.set(path, new Set())
+			allPaths.get(path).add(env)
+		})
+	})
+
+	// Check for inconsistencies
+	const errors = []
+	allPaths.forEach((envsWithPath, path) => {
+		const missingEnvs = environments.filter(env => !envsWithPath.has(env))
+		if (missingEnvs.length > 0) {
+			const hasEnvs = Array.from(envsWithPath)
+			errors.push(
+				`Property '${path}' exists in [${hasEnvs.join(', ')}] but missing in [${missingEnvs.join(', ')}]`,
+			)
+		}
+	})
+
+	if (errors.length > 0) {
+		throw new Error(
+			`❌ Configuration consistency validation failed:\n\n${errors.join('\n')}\n\nAll environments must have the same structure.`,
+		)
+	}
 }
 
 /**
@@ -131,6 +293,9 @@ function generateConfigTypes(configDir) {
 			console.warn(`Warning: Failed to parse ${file}:`, error)
 		}
 	})
+
+	// Validate consistency between environments
+	validateConfigConsistency(configs)
 
 	// Generate merged type structure
 	const typeDefinition = mergeJsonTypes(configs)
@@ -181,8 +346,14 @@ function autoGenerateForUserProject() {
 
 		const typeDeclaration = generateConfigTypes(configDir)
 		writeFileSync(outputFile, typeDeclaration)
-		console.log(`✅ Generated config types: ${outputFile}`)
-		console.log(`📁 From config directory: ${configDir}`)
+
+		// Create relative paths from project root
+		const relativeOutputFile = relative(projectRoot, outputFile)
+		const relativeConfigDir = relative(projectRoot, configDir)
+
+		console.log(
+			`✅ Generated config types: ${relativeOutputFile} (from ${relativeConfigDir})`,
+		)
 		return true
 	} catch (error) {
 		console.error('❌ Failed to generate config types:', error)
@@ -193,5 +364,30 @@ function autoGenerateForUserProject() {
 // Export for internal use by type-generator.ts
 export { generateConfigTypes }
 
-// Auto-run when called directly
-autoGenerateForUserProject()
+// Handle CLI arguments or auto-run
+const args = process.argv.slice(2)
+if (args.length >= 2) {
+	// CLI mode with explicit paths
+	const [configDir, outputFile] = args
+	try {
+		// Ensure types directory exists
+		const typesDir = dirname(outputFile)
+		if (!existsSync(typesDir)) {
+			mkdirSync(typesDir, { recursive: true })
+		}
+
+		const typeDeclaration = generateConfigTypes(configDir)
+		writeFileSync(outputFile, typeDeclaration)
+
+		// For CLI mode, show absolute paths
+		console.log(
+			`✅ Generated config types: ${outputFile} (from ${configDir})`,
+		)
+	} catch (error) {
+		console.error('❌ Failed to generate config types:', error)
+		process.exit(1)
+	}
+} else {
+	// Auto-run when called directly without arguments
+	autoGenerateForUserProject()
+}

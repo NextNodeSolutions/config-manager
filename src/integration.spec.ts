@@ -70,7 +70,7 @@ describe('Configuration Integration Tests', () => {
 				'[DEV] Welcome to NextNode',
 			)
 			expect(getConfig('email.templates.welcome.body', 'dev')).toBe(
-				'Welcome to our platform!',
+				'Welcome to our development environment!',
 			)
 			expect(
 				getConfig('email.templates.projectRequest.subject', 'dev'),
@@ -125,9 +125,9 @@ describe('Configuration Integration Tests', () => {
 
 		it('should identify missing configuration in different environments', () => {
 			const requiredPaths = [
-				'app.name',
-				'monitoring.enabled',
-				'database.ssl',
+				'app.name', // This exists in default but not overridden in environments
+				'nonexistent.property', // This doesn't exist anywhere
+				'database.ssl', // This should exist in all environments now
 			]
 
 			const testResult = validateRequiredConfig(requiredPaths, 'test')
@@ -135,12 +135,13 @@ describe('Configuration Integration Tests', () => {
 
 			expect(testResult.valid).toBe(false)
 			expect(testResult.missing).toEqual([
-				'monitoring.enabled',
-				'database.ssl',
+				'nonexistent.property', // Only this should be missing now
 			])
 
-			expect(prodResult.valid).toBe(true)
-			expect(prodResult.missing).toEqual([])
+			expect(prodResult.valid).toBe(false)
+			expect(prodResult.missing).toEqual([
+				'nonexistent.property', // Same missing property
+			])
 		})
 	})
 
@@ -265,7 +266,6 @@ describe('Configuration Integration Tests', () => {
 			expect(getConfig('app.features', 'dev')).toEqual([
 				'config',
 				'logging',
-				'metrics',
 			])
 			expect(getConfig('app.features', 'prod')).toEqual([
 				'config',

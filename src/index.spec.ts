@@ -160,6 +160,20 @@ describe('Configuration API', () => {
 			expect(typeof debug).toBe('boolean')
 		})
 
+		it('should provide exact union types for configuration values', () => {
+			// These should have exact string literal types based on the actual test config structure
+			const appName = getConfig('app.name') // Should be 'TestApp'
+			const emailFrom = getConfig('email.from') // Should be 'test@example.com' | 'test-env@example.com'
+			const welcomeSubject = getConfig('email.templates.welcome.subject') // Should be 'Welcome!'
+
+			// Validate that values are from expected exact sets based on test configuration
+			expect(appName).toBe('TestApp')
+			expect(['test@example.com', 'test-env@example.com']).toContain(
+				emailFrom,
+			)
+			expect(welcomeSubject).toBe('Welcome!')
+		})
+
 		it('should override environment when specified', () => {
 			const devConfig = { app: { env: 'development' } }
 			writeFileSync(

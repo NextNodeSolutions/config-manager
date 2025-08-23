@@ -1,5 +1,20 @@
 # @nextnode/functions-server
 
+## 2.0.1
+
+### Patch Changes
+
+- [#14](https://github.com/NextNodeSolutions/config-manager/pull/14) [`f5d0a77`](https://github.com/NextNodeSolutions/config-manager/commit/f5d0a7797d4d8088ce803cc28e134548e1ea7e82) Thanks [@walid-mos](https://github.com/walid-mos)! - Fix ESM imports and add generate-config binary command
+
+  - Fix all TypeScript import statements to include .js extensions for ESM compatibility
+  - Make initConfig() async to properly await type generation
+  - Add `generate-config` binary for automatic type generation from package scripts
+  - Implement auto-detection of user projects in generate-types.js
+  - Add executable permissions to generated binary file
+  - Update build process with postbuild chmod for npm compatibility
+
+  The config-manager now provides a `generate-config` command that can be called from package.json scripts to automatically generate types/config.d.ts when configuration files change.
+
 ## 2.0.0
 
 ### Major Changes

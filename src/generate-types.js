@@ -190,33 +190,5 @@ function autoGenerateForUserProject() {
 	}
 }
 
-/**
- * CLI usage
- */
-function main() {
-	const configDir = process.argv[2] || './config'
-	const outputFile = process.argv[3] || './config.d.ts'
-
-	try {
-		const typeDeclaration = generateConfigTypes(configDir)
-		writeFileSync(outputFile, typeDeclaration)
-		console.log(`✅ Generated config types: ${outputFile}`)
-		console.log(`📁 From config directory: ${configDir}`)
-	} catch (error) {
-		console.error('❌ Failed to generate config types:', error)
-		process.exit(1)
-	}
-}
-
-// Export for use as module
-export { generateConfigTypes }
-
-// Run if called directly
-if (import.meta.url === `file://${process.argv[1]}`) {
-	// If no arguments provided, try auto-generation
-	if (process.argv.length === 2) {
-		autoGenerateForUserProject()
-	} else {
-		main()
-	}
-}
+// Auto-run when called directly
+autoGenerateForUserProject()

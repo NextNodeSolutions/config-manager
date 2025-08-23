@@ -1,6 +1,6 @@
-import { ERROR_CODES } from './constants'
+import { ERROR_CODES } from './constants.js'
 
-import type { ConfigPath } from './types'
+import type { ConfigPath } from './types.js'
 
 /**
  * Base error class for configuration-related errors

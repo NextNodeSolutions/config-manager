@@ -14,9 +14,9 @@ import {
 	clearConfigCache,
 	getAvailableEnvironments,
 	validateRequiredConfig,
-} from './index'
+} from './index.js'
 
-import type { ConfigOptions } from './definitions/types'
+import type { ConfigOptions } from './definitions/types.js'
 
 describe('Configuration API', () => {
 	let tempDir: string

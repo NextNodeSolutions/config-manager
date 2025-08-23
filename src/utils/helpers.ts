@@ -1,4 +1,4 @@
-import type { ConfigObject, ConfigValue } from '../definitions/types'
+import type { ConfigObject, ConfigValue } from '../definitions/types.js'
 
 /**
  * Deep merge two configuration objects

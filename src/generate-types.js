@@ -5,8 +5,14 @@
  * This script reads JSON config files and creates precise TypeScript types
  */
 
-import { readFileSync, writeFileSync, readdirSync, existsSync } from 'node:fs'
-import { join, extname, basename } from 'node:path'
+import {
+	readFileSync,
+	writeFileSync,
+	readdirSync,
+	existsSync,
+	mkdirSync,
+} from 'node:fs'
+import { join, extname, basename, dirname } from 'node:path'
 
 /**
  * Convert a JSON value to its TypeScript type representation
@@ -145,6 +151,46 @@ export {}
 }
 
 /**
+ * Auto-detect user project and generate types
+ */
+function autoGenerateForUserProject() {
+	// Find the user project root (go up from node_modules)
+	const currentDir = process.cwd()
+	let projectRoot = currentDir
+
+	// If we're in node_modules/@nextnode/config-manager, go up to find project root
+	if (currentDir.includes('node_modules/@nextnode/config-manager')) {
+		const parts = currentDir.split('node_modules')
+		projectRoot = parts[0]
+	}
+
+	const configDir = join(projectRoot, 'config')
+	if (!existsSync(configDir)) {
+		// No config directory found, skip generation
+		return false
+	}
+
+	const outputFile = join(projectRoot, 'types', 'config.d.ts')
+
+	try {
+		// Ensure types directory exists
+		const typesDir = dirname(outputFile)
+		if (!existsSync(typesDir)) {
+			mkdirSync(typesDir, { recursive: true })
+		}
+
+		const typeDeclaration = generateConfigTypes(configDir)
+		writeFileSync(outputFile, typeDeclaration)
+		console.log(`✅ Generated config types: ${outputFile}`)
+		console.log(`📁 From config directory: ${configDir}`)
+		return true
+	} catch (error) {
+		console.error('❌ Failed to generate config types:', error)
+		return false
+	}
+}
+
+/**
  * CLI usage
  */
 function main() {
@@ -167,5 +213,10 @@ export { generateConfigTypes }
 
 // Run if called directly
 if (import.meta.url === `file://${process.argv[1]}`) {
-	main()
+	// If no arguments provided, try auto-generation
+	if (process.argv.length === 2) {
+		autoGenerateForUserProject()
+	} else {
+		main()
+	}
 }

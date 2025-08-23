@@ -13,7 +13,7 @@ import {
 	clearConfigCache,
 	getAvailableEnvironments,
 	validateRequiredConfig,
-} from './index'
+} from './index.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)

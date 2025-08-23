@@ -1,79 +1,81 @@
 {
-  "name": "@nextnode/config-manager",
-  "version": "2.0.0",
-  "description": "A TypeScript configuration management library with automatic type generation from JSON config files. Provides environment-aware configuration loading with intelligent type inference.",
-  "keywords": [
-    "config",
-    "configuration",
-    "environment",
-    "json",
-    "nextnode",
-    "typescript",
-    "types",
-    "auto-generation"
-  ],
-  "license": "ISC",
-  "author": "Nextnode",
-  "files": [
-    "README.md",
-    "dist/"
-  ],
-  "main": "./dist/index.js",
-  "scripts": {
-    "prebuild": "npm run clean",
-    "build": "tsc -p tsconfig.build.json",
-    "changeset": "changeset",
-    "changeset:publish": "changeset publish",
-    "changeset:version": "changeset version",
-    "clean": "rm -rf dist",
-    "commitlint": "commitlint --edit",
-    "format": "biome check --write .",
-    "generate-config-types": "node src/generate-types.js",
-    "generate-test-types": "pnpm generate-config-types src/__test-fixtures__ src/__test-fixtures__/generated-types.d.ts",
-    "lint": "eslint . --max-warnings 0",
-    "lint-staged": "lint-staged",
-    "lint:fix": "eslint . --max-warnings 0 --fix",
-    "prepare": "husky",
-    "prepublishOnly": "pnpm build",
-    "test": "vitest run",
-    "test:coverage": "vitest run --coverage",
-    "test:ui": "vitest --ui",
-    "test:watch": "vitest",
-    "type-check": "pnpm generate-test-types && tsc --noEmit"
-  },
-  "devDependencies": {
-    "@biomejs/biome": "1.9.4",
-    "@changesets/changelog-github": "^0.5.1",
-    "@changesets/cli": "^2.29.4",
-    "@commitlint/cli": "^19.2.1",
-    "@commitlint/config-conventional": "^19.1.0",
-    "@nextnode/eslint-plugin": "^1.2.0",
-    "@testing-library/jest-dom": "^6.6.3",
-    "@testing-library/react": "^16.3.0",
-    "@types/node": "^22.0.0",
-    "@vitest/coverage-v8": "^3.1.4",
-    "better-sort-package-json": "^1.1.1",
-    "eslint": "^9.27.0",
-    "husky": "^9.0.11",
-    "lint-staged": "^15.2.2",
-    "typescript": "^5.0.0",
-    "vitest": "^3.1.4"
-  },
-  "peerDependencies": {
-    "eslint": "^9.22.0"
-  },
-  "engines": {
-    "node": ">=20.0.0"
-  },
-  "packageManager": "pnpm@10.11.0",
-  "type": "module",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "require": "./dist/index.js"
-    }
-  },
-  "module": "./dist/index.js",
-  "types": "./dist/index.d.ts"
+	"name": "@nextnode/config-manager",
+	"version": "2.0.0",
+	"description": "A TypeScript configuration management library with automatic type generation from JSON config files. Provides environment-aware configuration loading with intelligent type inference.",
+	"keywords": [
+		"auto-generation",
+		"config",
+		"configuration",
+		"environment",
+		"json",
+		"nextnode",
+		"types",
+		"typescript"
+	],
+	"license": "ISC",
+	"author": "Nextnode",
+	"files": ["README.md", "dist/"],
+	"main": "./dist/index.js",
+	"bin": {
+		"generate-config": "./dist/generate-types.js"
+	},
+	"scripts": {
+		"prebuild": "npm run clean",
+		"build": "tsc -p tsconfig.build.json",
+		"postbuild": "chmod +x dist/generate-types.js",
+		"changeset": "changeset",
+		"changeset:publish": "changeset publish",
+		"changeset:version": "changeset version",
+		"clean": "rm -rf dist",
+		"commitlint": "commitlint --edit",
+		"format": "biome check --write .",
+		"generate": "node dist/generate-types.js",
+		"generate-config-types": "node src/generate-types.js",
+		"generate-test-types": "pnpm generate-config-types src/__test-fixtures__ src/__test-fixtures__/generated-types.d.ts",
+		"lint": "eslint . --max-warnings 0",
+		"lint-staged": "lint-staged",
+		"lint:fix": "eslint . --max-warnings 0 --fix",
+		"prepare": "husky",
+		"prepublishOnly": "pnpm build",
+		"test": "vitest run",
+		"test:coverage": "vitest run --coverage",
+		"test:ui": "vitest --ui",
+		"test:watch": "vitest",
+		"type-check": "pnpm generate-test-types && tsc --noEmit"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "1.9.4",
+		"@changesets/changelog-github": "^0.5.1",
+		"@changesets/cli": "^2.29.4",
+		"@commitlint/cli": "^19.2.1",
+		"@commitlint/config-conventional": "^19.1.0",
+		"@nextnode/eslint-plugin": "^1.2.0",
+		"@testing-library/jest-dom": "^6.6.3",
+		"@testing-library/react": "^16.3.0",
+		"@types/node": "^22.0.0",
+		"@vitest/coverage-v8": "^3.1.4",
+		"better-sort-package-json": "^1.1.1",
+		"eslint": "^9.27.0",
+		"husky": "^9.0.11",
+		"lint-staged": "^15.2.2",
+		"typescript": "^5.0.0",
+		"vitest": "^3.1.4"
+	},
+	"peerDependencies": {
+		"eslint": "^9.22.0"
+	},
+	"engines": {
+		"node": ">=20.0.0"
+	},
+	"packageManager": "pnpm@10.11.0",
+	"type": "module",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"import": "./dist/index.js",
+			"require": "./dist/index.js"
+		}
+	},
+	"module": "./dist/index.js",
+	"types": "./dist/index.d.ts"
 }

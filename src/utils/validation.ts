@@ -1,11 +1,11 @@
-import { VALID_ENVIRONMENTS, ENV_VARS } from '../definitions/constants'
+import { VALID_ENVIRONMENTS, ENV_VARS } from '../definitions/constants.js'
 import {
 	InvalidEnvironmentError,
 	AppEnvRequiredError,
 	AppEnvUnavailableError,
-} from '../definitions/errors'
+} from '../definitions/errors.js'
 
-import type { ConfigObject } from '../definitions/types'
+import type { ConfigObject } from '../definitions/types.js'
 
 /**
  * Validate configuration object structure

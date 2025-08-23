@@ -1,8 +1,8 @@
-import { ConfigLoader } from './loader'
-import { getNestedValue } from '../utils/helpers'
-import { resolveEnvironment } from '../utils/validation'
-import { autoGenerateTypes } from './type-generator'
-import { ConfigurationPathError } from '../definitions/errors'
+import { ConfigLoader } from './loader.js'
+import { getNestedValue } from '../utils/helpers.js'
+import { resolveEnvironment } from '../utils/validation.js'
+import { autoGenerateTypes } from './type-generator.js'
+import { ConfigurationPathError } from '../definitions/errors.js'
 
 import type {
 	ConfigOptions,
@@ -10,13 +10,10 @@ import type {
 	DetectedConfigType,
 	AutoConfigPath,
 	UserConfigSchema,
-} from '../definitions/types'
+} from '../definitions/types.js'
 
 // Global configuration loader instance
 let globalLoader: ConfigLoader | null = null
-
-// Track if we've attempted auto type generation
-let hasAttemptedAutoGeneration = false
 
 /**
  * Ensure global loader is initialized with default options if not already present
@@ -24,17 +21,6 @@ let hasAttemptedAutoGeneration = false
 const ensureGlobalLoader = (): ConfigLoader => {
 	if (!globalLoader) {
 		globalLoader = new ConfigLoader()
-	}
-
-	// Auto-generate types on first usage if not already done
-	if (!hasAttemptedAutoGeneration) {
-		hasAttemptedAutoGeneration = true
-		autoGenerateTypes().catch(error => {
-			console.error('❌ Type generation failed:', error)
-			throw new Error(
-				'Configuration type generation is required but failed',
-			)
-		})
 	}
 
 	return globalLoader
@@ -55,20 +41,22 @@ const ensureGlobalLoader = (): ConfigLoader => {
  * ```
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export const initConfig = <TSchema = UserConfigSchema>(
+export const initConfig = async <TSchema = UserConfigSchema>(
 	options: ConfigOptions = {},
-): void => {
+): Promise<void> => {
 	globalLoader = new ConfigLoader(options)
 
 	// Automatically generate types for the user project (mandatory)
-	autoGenerateTypes(
-		options.configDir ? { configDir: options.configDir } : {},
-	).catch(error => {
+	try {
+		await autoGenerateTypes(
+			options.configDir ? { configDir: options.configDir } : {},
+		)
+	} catch (error) {
 		console.error('❌ Type generation failed during initialization:', error)
 		throw new Error(
 			'Configuration type generation is required but failed during initialization',
 		)
-	})
+	}
 }
 
 /**

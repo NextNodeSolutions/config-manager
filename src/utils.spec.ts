@@ -5,15 +5,15 @@ import {
 	getNestedValue,
 	setNestedValue,
 	cloneConfig,
-} from './utils/helpers'
-import { validateConfig, getCurrentEnvironment } from './utils/validation'
+} from './utils/helpers.js'
+import { validateConfig, getCurrentEnvironment } from './utils/validation.js'
 import {
 	InvalidEnvironmentError,
 	AppEnvRequiredError,
 	AppEnvUnavailableError,
-} from './definitions/errors'
+} from './definitions/errors.js'
 
-import type { ConfigObject, ConfigValue } from './definitions/types'
+import type { ConfigObject, ConfigValue } from './definitions/types.js'
 
 describe('deepMerge', () => {
 	it('should merge simple objects', () => {

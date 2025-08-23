@@ -12,10 +12,10 @@ export {
 	clearConfigCache,
 	getAvailableEnvironments,
 	validateRequiredConfig,
-} from './core/manager'
+} from './core/manager.js'
 
 // Core classes
-export { ConfigLoader } from './core/loader'
+export { ConfigLoader } from './core/loader.js'
 
 // Types
 export type {
@@ -30,10 +30,10 @@ export type {
 	UserConfigSchema,
 	DetectedConfigType,
 	AutoConfigPath,
-} from './definitions/types'
+} from './definitions/types.js'
 
 // Utility functions
-export { deepMerge, getNestedValue, setNestedValue } from './utils/helpers'
+export { deepMerge, getNestedValue, setNestedValue } from './utils/helpers.js'
 
 // Error classes
 export {
@@ -47,11 +47,11 @@ export {
 	AppEnvUnavailableError,
 	ConfigDirNotFoundError,
 	ConfigurationPathError,
-} from './definitions/errors'
+} from './definitions/errors.js'
 
 // Constants
 export {
 	VALID_ENVIRONMENTS,
 	ERROR_CODES,
 	ENV_VARS,
-} from './definitions/constants'
+} from './definitions/constants.js'

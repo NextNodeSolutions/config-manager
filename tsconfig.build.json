@@ -6,10 +6,7 @@
 		"declarationMap": true,
 		"sourceMap": true,
 		"outDir": "dist",
-		"rootDir": "src",
-		"module": "NodeNext",
-		"moduleResolution": "NodeNext",
-		"rewriteRelativeImportExtensions": true
+		"rootDir": "src"
 	},
 	"include": ["src/**/*.ts"],
 	"exclude": ["**/*.test.ts", "**/*.spec.ts"]

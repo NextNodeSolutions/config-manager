@@ -190,5 +190,8 @@ function autoGenerateForUserProject() {
 	}
 }
 
+// Export for internal use by type-generator.ts
+export { generateConfigTypes }
+
 // Auto-run when called directly
 autoGenerateForUserProject()

@@ -28,11 +28,10 @@ export type {
 	ConfigObject,
 	ConfigPath,
 	ConfigOptions,
-	BaseConfigSchema,
+	ConfigSchema,
 	InferConfigType,
 	MergeConfigs,
 	PathValue,
-	UserConfigSchema,
 	DetectedConfigType,
 	AutoConfigPath,
 } from './types.js'

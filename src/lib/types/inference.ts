@@ -42,6 +42,40 @@ export const valueToLiteralType = (value: unknown): string => {
 }
 
 /**
+ * Helper pour extraire le type d'un item
+ */
+const getItemType = (item: unknown): string => {
+	if (typeof item === 'string') return 'string'
+	if (typeof item === 'number') return 'number'
+	if (typeof item === 'boolean') return 'boolean'
+	if (item === null) return 'null'
+	return 'unknown'
+}
+
+/**
+ * Smart array typing qui essaye de faire des tuples précis
+ */
+export const smartArrayUnionType = (arrays: unknown[][]): string => {
+	// Check tuple possibility
+	const firstLength = arrays[0]?.length ?? 0
+	if (arrays.every(arr => arr.length === firstLength) && firstLength > 0) {
+		const positionTypes = Array.from({ length: firstLength }, (_, pos) => {
+			const typesAtPos = new Set(arrays.map(arr => getItemType(arr[pos])))
+			return Array.from(typesAtPos)
+		})
+
+		// Si chaque position a un seul type → tuple
+		if (positionTypes.every(types => types.length === 1)) {
+			return `readonly [${positionTypes.map(types => types[0]).join(', ')}]`
+		}
+	}
+
+	// Fallback → array générique
+	const allTypes = new Set(arrays.flat().map(getItemType))
+	return `readonly (${Array.from(allTypes).join(' | ')})[]`
+}
+
+/**
  * Convert an array to its TypeScript type representation
  */
 export const arrayToType = (arr: unknown[]): string => {
@@ -79,6 +113,11 @@ export const createUnionType = (values: Set<unknown>): string => {
 			return arrayToType(value)
 		}
 		return valueToLiteralType(value)
+	}
+
+	// Si toutes les valeurs sont des arrays, utilise le smart array typing
+	if (Array.from(values).every(v => Array.isArray(v))) {
+		return smartArrayUnionType(Array.from(values) as unknown[][])
 	}
 
 	// Multiple values - create union type

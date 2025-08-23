@@ -6,6 +6,7 @@ export { ConfigLoader } from './loader.js'
 export {
 	initConfig,
 	getConfig,
+	getConfigTyped,
 	hasConfig,
 	getEnvironment,
 	clearConfigCache,

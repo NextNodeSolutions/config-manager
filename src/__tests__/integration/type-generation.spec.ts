@@ -4,9 +4,11 @@ import { join } from 'node:path'
 import { tmpdir } from 'node:os'
 
 import { generateConfigTypes } from '@/lib/types/generator.js'
+import { getConfig, getConfigTyped, initConfig } from '@/index.js'
+
 // Import generated types for precise type inference validation
-import '@/__tests__/fixtures/configs/generated-types.d.ts'
-import { getConfig, initConfig } from '@/index.js'
+import type { GeneratedConfigSchema } from '@/__tests__/fixtures/configs/generated-types.d.ts'
+import type { PathValue, AutoConfigPath } from '@/lib/definitions/types.js'
 
 describe('Type Generation', () => {
 	let tempDir: string
@@ -125,7 +127,7 @@ describe('Type Generation', () => {
 			const typeDeclaration = generateConfigTypes(configDir)
 
 			expect(typeDeclaration).toContain(
-				"readonly features: readonly ('auth' | 'logging')[] | readonly ('auth' | 'logging' | 'metrics' | 'monitoring')[]",
+				'readonly features: readonly (string)[]',
 			)
 		})
 
@@ -198,16 +200,58 @@ describe('Type Generation', () => {
 			expect(typeof dbDebug).toBe('boolean')
 		})
 
-		it('should validate array element types match expected unions', () => {
-			const features = getConfig('app.features') // Should be array with specific string literals
+		it('should debug PathValue resolution', () => {
+			// Test avec GeneratedConfigSchema directement (Prisma-style)
+			type TestDirect = GeneratedConfigSchema['app']['features']
+			type TestPathValue = PathValue<
+				GeneratedConfigSchema,
+				'app.features'
+			>
+			type TestApp = GeneratedConfigSchema['app']
 
+			// Tests directs - ceux-ci DOIVENT marcher
+			const directTest: TestDirect = [] as unknown as TestDirect
+			const appTest: TestApp = {} as unknown as TestApp
+
+			// Test PathValue vs accès direct
+			const pathTest: TestPathValue = [] as unknown as TestPathValue
+
+			expect(Array.isArray(directTest)).toBeDefined()
+			expect(typeof appTest).toBeDefined()
+			expect(Array.isArray(pathTest)).toBeDefined()
+		})
+
+		it('should validate array element types match expected unions', () => {
+			// Test direct: est-ce que le path 'app.features' est bien dans AutoConfigPath ?
+			type IsValidPath = 'app.features' extends AutoConfigPath
+				? true
+				: false
+			const pathTest: IsValidPath = true // Doit compiler
+			expect(pathTest).toBe(true)
+
+			// Test avec getConfig normal
+			const features = getConfig('app.features')
+			console.log(
+				'Type de features:',
+				typeof features,
+				Array.isArray(features),
+			)
 			expect(Array.isArray(features)).toBe(true)
+
+			// Test d'autres paths pour comparaison
+			const appName = getConfig('app.name')
+			const emailProvider = getConfig('email.provider')
+			console.log('app.name:', typeof appName, appName)
+			console.log('email.provider:', typeof emailProvider, emailProvider)
+
+			// Test avec getConfigTyped qui doit marcher
+			const featuresTyped = getConfigTyped('app.features')
+			expect(Array.isArray(featuresTyped)).toBe(true)
 
 			// All elements should be from the expected set
 			const validFeatures = ['config', 'logging', 'metrics', 'monitoring']
-			// TODO: Fix type generation for arrays - should be readonly string[] not union of different arrays
-			if (Array.isArray(features)) {
-				features.forEach((feature: string) => {
+			if (Array.isArray(featuresTyped)) {
+				featuresTyped.forEach(feature => {
 					expect(validFeatures).toContain(feature)
 				})
 			}

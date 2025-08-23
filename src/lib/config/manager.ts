@@ -10,7 +10,7 @@ import type {
 	PathValue,
 	DetectedConfigType,
 	AutoConfigPath,
-	UserConfigSchema,
+	ConfigSchema,
 } from '@/lib/definitions/types.js'
 
 // Global configuration loader instance
@@ -42,7 +42,7 @@ const ensureGlobalLoader = (): ConfigLoader => {
  * ```
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export const initConfig = async <TSchema = UserConfigSchema>(
+export const initConfig = async <TSchema = ConfigSchema>(
 	options: ConfigOptions = {},
 ): Promise<void> => {
 	globalLoader = new ConfigLoader(options)
@@ -76,34 +76,24 @@ export const initConfig = async <TSchema = UserConfigSchema>(
  * const config = getConfig() // DetectedConfigType - inferred from user schema
  * const emailFrom = getConfig('email.from') // Inferred type based on user schema
  * const database = getConfig('database') // Inferred section type
- *
- * // Optional type override (only if needed)
- * const customConfig = getConfig<MyCustomType>()
  * ```
  */
 export function getConfig(): DetectedConfigType
-export function getConfig(
-	path: undefined,
-	environment: string,
-): DetectedConfigType
 export function getConfig<TPath extends AutoConfigPath>(
 	path: TPath,
-): PathValue<UserConfigSchema, TPath>
+): PathValue<ConfigSchema, TPath>
 export function getConfig<TPath extends AutoConfigPath>(
 	path: TPath,
 	environment: string,
-): PathValue<UserConfigSchema, TPath>
-export function getConfig<TOverride = DetectedConfigType>(
-	path?: string,
-	environment?: string,
-): TOverride | PathValue<UserConfigSchema, AutoConfigPath> {
+): PathValue<ConfigSchema, TPath>
+export function getConfig(path?: string, environment?: string): unknown {
 	const loader = ensureGlobalLoader()
 	const resolvedEnv = resolveEnvironment(environment)
 	const config = loader.loadConfig(resolvedEnv)
 
 	// Return entire config if no path specified (deeply readonly)
 	if (!path) {
-		return config as TOverride
+		return config
 	}
 
 	// Get nested value using dot notation
@@ -115,7 +105,22 @@ export function getConfig<TOverride = DetectedConfigType>(
 			loader.getConfigDirectory?.(),
 		)
 	}
-	return value as PathValue<UserConfigSchema, AutoConfigPath>
+	return value
+}
+
+/**
+ * Get configuration value with perfect type inference (debug version)
+ */
+export const getConfigTyped = <TPath extends AutoConfigPath>(
+	path: TPath,
+): PathValue<ConfigSchema, TPath> => {
+	const loader = ensureGlobalLoader()
+	const config = loader.loadConfig(resolveEnvironment())
+	const value = getNestedValue(config, path)
+	if (value === undefined) {
+		throw new ConfigurationPathError(path, resolveEnvironment())
+	}
+	return value as PathValue<ConfigSchema, TPath>
 }
 
 /**

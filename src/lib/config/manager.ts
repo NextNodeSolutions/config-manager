@@ -1,8 +1,9 @@
+import { getNestedValue } from '@/lib/utils/helpers.js'
+import { resolveEnvironment } from '@/lib/utils/validation.js'
+import { autoGenerateTypes } from '@/lib/types/generator.js'
+import { ConfigurationPathError } from '@/lib/definitions/errors.js'
+
 import { ConfigLoader } from './loader.js'
-import { getNestedValue } from '../utils/helpers.js'
-import { resolveEnvironment } from '../utils/validation.js'
-import { autoGenerateTypes } from './type-generator.js'
-import { ConfigurationPathError } from '../definitions/errors.js'
 
 import type {
 	ConfigOptions,
@@ -10,7 +11,7 @@ import type {
 	DetectedConfigType,
 	AutoConfigPath,
 	UserConfigSchema,
-} from '../definitions/types.js'
+} from '@/lib/definitions/types.js'
 
 // Global configuration loader instance
 let globalLoader: ConfigLoader | null = null

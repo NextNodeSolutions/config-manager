@@ -1,9 +1,9 @@
 /**
- * Utility functions for type generation
+ * Utility functions for type generation and inference
  * Consolidates common logic used in type generation to reduce duplication
  */
 
-import type { ConfigObject } from '../definitions/types.js'
+import type { ConfigObject } from '@/lib/definitions/types.js'
 
 /**
  * Check if value is a plain object (not array, null, or other types)

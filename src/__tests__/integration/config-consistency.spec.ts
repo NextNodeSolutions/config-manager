@@ -3,8 +3,8 @@ import { writeFileSync, mkdirSync, rmSync } from 'node:fs'
 import { join } from 'node:path'
 import { tmpdir } from 'node:os'
 
-import { initConfig, getConfig } from './index.js'
-import { generateConfigTypes } from './generate-types.js'
+import { initConfig, getConfig } from '@/index.js'
+import { generateConfigTypes } from '@/lib/types/generator.js'
 
 describe('Configuration Consistency Between Environments', () => {
 	let tempDir: string
@@ -24,7 +24,7 @@ describe('Configuration Consistency Between Environments', () => {
 	describe('Current behavior with missing properties', () => {
 		it('should work correctly when property exists in all environments', () => {
 			// Test with consistent configs (like our fixed fixtures)
-			initConfig({ configDir: 'src/__test-fixtures__' })
+			initConfig({ configDir: 'src/__tests__/fixtures/configs' })
 
 			// All environments should have these properties
 			expect(() => getConfig('database.ssl', 'dev')).not.toThrow()
@@ -38,7 +38,7 @@ describe('Configuration Consistency Between Environments', () => {
 
 		it('should demonstrate how consistent structure provides reliable types', () => {
 			// With consistent structures, all properties are guaranteed to exist
-			initConfig({ configDir: 'src/__test-fixtures__' })
+			initConfig({ configDir: 'src/__tests__/fixtures/configs' })
 
 			// Test that all environments have monitoring section
 			const devMonitoring = getConfig('monitoring', 'dev')

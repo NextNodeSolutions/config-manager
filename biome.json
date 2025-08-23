@@ -1,7 +1,7 @@
 {
 	"$schema": "https://biomejs.dev/schemas/1.8.3/schema.json",
 	"files": {
-		"ignore": ["src/config/__test-fixtures__/invalid.json"]
+		"ignore": ["src/__tests__/fixtures/configs/invalid.json"]
 	},
 	"formatter": {
 		"enabled": true,

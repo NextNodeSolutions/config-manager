@@ -4,7 +4,7 @@ import { join } from 'path'
 import { tmpdir } from 'os'
 
 // Import generated types for precise type inference in tests
-import './__test-fixtures__/generated-types.d.ts'
+import '../fixtures/configs/generated-types.d.ts'
 
 import {
 	initConfig,
@@ -14,9 +14,9 @@ import {
 	clearConfigCache,
 	getAvailableEnvironments,
 	validateRequiredConfig,
-} from './index.js'
+} from '@/index.js'
 
-import type { ConfigOptions } from './definitions/types.js'
+import type { ConfigOptions } from '@/lib/definitions/types.js'
 
 describe('Configuration API', () => {
 	let tempDir: string

@@ -2,7 +2,7 @@ import { writeFileSync, mkdirSync, rmSync, existsSync } from 'node:fs'
 import { join } from 'node:path'
 import { tmpdir } from 'node:os'
 
-import type { ConfigObject, ConfigValue } from './definitions/types.js'
+import type { ConfigObject, ConfigValue } from '@/lib/definitions/types.js'
 
 /**
  * Test helper utilities for reducing duplication in test files

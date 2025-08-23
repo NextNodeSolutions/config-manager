@@ -3,7 +3,7 @@ import { join, dirname } from 'path'
 import { fileURLToPath } from 'url'
 
 // Import generated types for precise type inference in tests
-import './__test-fixtures__/generated-types.d.ts'
+import '@/__tests__/fixtures/configs/generated-types.d.ts'
 
 import {
 	initConfig,
@@ -13,11 +13,11 @@ import {
 	clearConfigCache,
 	getAvailableEnvironments,
 	validateRequiredConfig,
-} from './index.js'
+} from '@/index.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
-const fixturesDir = join(__dirname, '__test-fixtures__')
+const fixturesDir = join(__dirname, '../fixtures/configs')
 
 describe('Configuration Integration Tests', () => {
 	beforeEach(() => {

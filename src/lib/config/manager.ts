@@ -1,16 +1,17 @@
+import { getNestedValue } from '@/lib/utils/helpers.js'
+import { resolveEnvironment } from '@/lib/utils/validation.js'
+import { autoGenerateTypes } from '@/lib/types/generator.js'
+import { ConfigurationPathError } from '@/lib/definitions/errors.js'
+
 import { ConfigLoader } from './loader.js'
-import { getNestedValue } from '../utils/helpers.js'
-import { resolveEnvironment } from '../utils/validation.js'
-import { autoGenerateTypes } from './type-generator.js'
-import { ConfigurationPathError } from '../definitions/errors.js'
 
 import type {
 	ConfigOptions,
 	PathValue,
 	DetectedConfigType,
 	AutoConfigPath,
-	UserConfigSchema,
-} from '../definitions/types.js'
+	ConfigSchema,
+} from '@/lib/definitions/types.js'
 
 // Global configuration loader instance
 let globalLoader: ConfigLoader | null = null
@@ -41,7 +42,7 @@ const ensureGlobalLoader = (): ConfigLoader => {
  * ```
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export const initConfig = async <TSchema = UserConfigSchema>(
+export const initConfig = async <TSchema = ConfigSchema>(
 	options: ConfigOptions = {},
 ): Promise<void> => {
 	globalLoader = new ConfigLoader(options)
@@ -75,34 +76,24 @@ export const initConfig = async <TSchema = UserConfigSchema>(
  * const config = getConfig() // DetectedConfigType - inferred from user schema
  * const emailFrom = getConfig('email.from') // Inferred type based on user schema
  * const database = getConfig('database') // Inferred section type
- *
- * // Optional type override (only if needed)
- * const customConfig = getConfig<MyCustomType>()
  * ```
  */
 export function getConfig(): DetectedConfigType
-export function getConfig(
-	path: undefined,
-	environment: string,
-): DetectedConfigType
 export function getConfig<TPath extends AutoConfigPath>(
 	path: TPath,
-): PathValue<UserConfigSchema, TPath>
+): PathValue<ConfigSchema, TPath>
 export function getConfig<TPath extends AutoConfigPath>(
 	path: TPath,
 	environment: string,
-): PathValue<UserConfigSchema, TPath>
-export function getConfig<TOverride = DetectedConfigType>(
-	path?: string,
-	environment?: string,
-): TOverride | PathValue<UserConfigSchema, AutoConfigPath> {
+): PathValue<ConfigSchema, TPath>
+export function getConfig(path?: string, environment?: string): unknown {
 	const loader = ensureGlobalLoader()
 	const resolvedEnv = resolveEnvironment(environment)
 	const config = loader.loadConfig(resolvedEnv)
 
 	// Return entire config if no path specified (deeply readonly)
 	if (!path) {
-		return config as TOverride
+		return config
 	}
 
 	// Get nested value using dot notation
@@ -114,7 +105,7 @@ export function getConfig<TOverride = DetectedConfigType>(
 			loader.getConfigDirectory?.(),
 		)
 	}
-	return value as PathValue<UserConfigSchema, AutoConfigPath>
+	return value
 }
 
 /**

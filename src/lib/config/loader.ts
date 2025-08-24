@@ -1,20 +1,23 @@
 import { readFileSync, existsSync, readdirSync } from 'fs'
 import { join } from 'path'
 
-import { deepMerge } from '../utils/helpers.js'
-import { validateConfig, getCurrentEnvironment } from '../utils/validation.js'
+import { deepMerge } from '@/lib/utils/helpers.js'
+import {
+	validateConfig,
+	getCurrentEnvironment,
+} from '@/lib/utils/validation.js'
 import {
 	FILE_EXTENSIONS,
 	CONFIG_CACHE_PREFIX,
-} from '../definitions/constants.js'
+} from '@/lib/definitions/constants.js'
 import {
 	DefaultConfigMissingError,
 	InvalidConfigFormatError,
 	InvalidJsonSyntaxError,
 	ConfigDirNotFoundError,
-} from '../definitions/errors.js'
+} from '@/lib/definitions/errors.js'
 
-import type { ConfigObject, ConfigOptions } from '../definitions/types.js'
+import type { ConfigObject, ConfigOptions } from '@/lib/definitions/types.js'
 
 /**
  * Configuration loader with environment-specific overrides

@@ -4,16 +4,18 @@ import {
 	deepMerge,
 	getNestedValue,
 	setNestedValue,
-	cloneConfig,
-} from './utils/helpers.js'
-import { validateConfig, getCurrentEnvironment } from './utils/validation.js'
+} from '@/lib/utils/helpers.js'
+import {
+	validateConfig,
+	getCurrentEnvironment,
+} from '@/lib/utils/validation.js'
 import {
 	InvalidEnvironmentError,
 	AppEnvRequiredError,
 	AppEnvUnavailableError,
-} from './definitions/errors.js'
+} from '@/lib/definitions/errors.js'
 
-import type { ConfigObject, ConfigValue } from './definitions/types.js'
+import type { ConfigObject, ConfigValue } from '@/lib/definitions/types.js'
 
 describe('deepMerge', () => {
 	it('should merge simple objects', () => {
@@ -255,53 +257,5 @@ describe('getCurrentEnvironment', () => {
 		expect(() => getCurrentEnvironment()).toThrow(AppEnvUnavailableError)
 
 		processGlobalSpy.mockRestore()
-	})
-})
-
-describe('cloneConfig', () => {
-	it('should create deep clone of config object', () => {
-		const original: ConfigObject = {
-			email: {
-				from: 'test@example.com',
-				templates: {
-					welcome: { subject: 'Welcome!' },
-				},
-			},
-			app: {
-				features: ['auth', 'api'],
-			},
-		}
-
-		const cloned = cloneConfig(original)
-
-		expect(cloned).toEqual(original)
-		expect(cloned).not.toBe(original)
-		expect(cloned.email).not.toBe(original.email)
-		const clonedEmailConfig = cloned.email as Record<string, ConfigValue>
-		const originalEmailConfig = original.email as Record<
-			string,
-			ConfigValue
-		>
-		expect(clonedEmailConfig?.templates).not.toBe(
-			originalEmailConfig?.templates,
-		)
-	})
-
-	it('should handle null and undefined values in clone', () => {
-		const original: ConfigObject = {
-			nullValue: null,
-			undefinedValue: undefined,
-			nested: {
-				nullValue: null,
-			},
-		}
-
-		const cloned = cloneConfig(original)
-
-		expect(cloned).toEqual(original)
-		expect(cloned.nullValue).toBeNull()
-		expect(cloned.undefinedValue).toBeUndefined()
-		const nestedConfig = cloned.nested as Record<string, ConfigValue>
-		expect(nestedConfig?.nullValue).toBeNull()
 	})
 })

@@ -1,3 +1,5 @@
+import { isPlainObject } from '@/lib/types/inference.js'
+
 import type { ConfigObject, ConfigValue } from '../definitions/types.js'
 
 /**
@@ -16,8 +18,8 @@ export const deepMerge = (
 			const targetValue = result[key]
 
 			if (
-				isConfigObject(sourceValue) &&
-				isConfigObject(targetValue) &&
+				isPlainObject(sourceValue) &&
+				isPlainObject(targetValue) &&
 				targetValue !== undefined &&
 				sourceValue !== undefined
 			) {
@@ -45,7 +47,7 @@ export const getNestedValue = <T = ConfigValue>(
 	let current: ConfigValue | undefined = obj
 
 	for (const key of keys) {
-		if (current && isConfigObject(current) && key in current) {
+		if (current && isPlainObject(current) && key in current) {
 			current = current[key]
 		} else {
 			return undefined
@@ -77,14 +79,14 @@ export const setNestedValue = (
 
 	// Navigate to the parent object
 	for (const key of keys) {
-		if (!current || !isConfigObject(current)) {
+		if (!current || !isPlainObject(current)) {
 			return
 		}
 
 		if (
 			!(key in current) ||
 			current[key] === undefined ||
-			!isConfigObject(current[key])
+			!isPlainObject(current[key])
 		) {
 			current[key] = {}
 		}
@@ -92,24 +94,7 @@ export const setNestedValue = (
 		current = current[key]
 	}
 
-	if (current && isConfigObject(current)) {
+	if (current && isPlainObject(current)) {
 		current[lastKey] = value
 	}
 }
-
-/**
- * Create a deep clone of a configuration object
- */
-export const cloneConfig = (config: ConfigObject): ConfigObject =>
-	JSON.parse(JSON.stringify(config))
-
-/**
- * Check if value is a plain object (not array, null, or other types)
- */
-const isConfigObject = (
-	value: ConfigValue | undefined,
-): value is ConfigObject =>
-	value !== null &&
-	value !== undefined &&
-	typeof value === 'object' &&
-	!Array.isArray(value)

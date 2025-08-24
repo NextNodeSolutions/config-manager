@@ -24,6 +24,14 @@
 		"skipLibCheck": true,
 		"allowJs": true,
 
+		// TypeScript Paths
+		"baseUrl": "./src",
+		"paths": {
+			"@/*": ["./*"],
+			"@/lib/*": ["./lib/*"],
+			"@/tests/*": ["./__tests__/*"]
+		},
+
 		// DEV: Validation uniquement (pas de génération)
 		"noEmit": true,
 		"types": ["node", "vitest/globals"]

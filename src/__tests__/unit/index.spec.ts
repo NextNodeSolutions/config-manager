@@ -4,7 +4,7 @@ import { join } from 'path'
 import { tmpdir } from 'os'
 
 // Import generated types for precise type inference in tests
-import './__test-fixtures__/generated-types.d.ts'
+import '../fixtures/configs/generated-types.d.ts'
 
 import {
 	initConfig,
@@ -14,9 +14,9 @@ import {
 	clearConfigCache,
 	getAvailableEnvironments,
 	validateRequiredConfig,
-} from './index.js'
+} from '@/index.js'
 
-import type { ConfigOptions } from './definitions/types.js'
+import type { ConfigOptions } from '@/lib/definitions/types.js'
 
 describe('Configuration API', () => {
 	let tempDir: string
@@ -158,6 +158,20 @@ describe('Configuration API', () => {
 			expect(typeof appName).toBe('string')
 			expect(Array.isArray(features)).toBe(true)
 			expect(typeof debug).toBe('boolean')
+		})
+
+		it('should provide exact union types for configuration values', () => {
+			// These should have exact string literal types based on the actual test config structure
+			const appName = getConfig('app.name') // Should be 'TestApp'
+			const emailFrom = getConfig('email.from') // Should be 'test@example.com' | 'test-env@example.com'
+			const welcomeSubject = getConfig('email.templates.welcome.subject') // Should be 'Welcome!'
+
+			// Validate that values are from expected exact sets based on test configuration
+			expect(appName).toBe('TestApp')
+			expect(['test@example.com', 'test-env@example.com']).toContain(
+				emailFrom,
+			)
+			expect(welcomeSubject).toBe('Welcome!')
 		})
 
 		it('should override environment when specified', () => {

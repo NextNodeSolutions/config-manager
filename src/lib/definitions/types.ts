@@ -80,54 +80,34 @@ export type ConfigPath<T = ConfigObject> = T extends Record<string, unknown>
  * Utility type to get the exact value type at a specific path in a nested object
  * Returns the precise type without undefined (strict mode by default)
  * Used to infer the return type of getConfig based on the path parameter
+ * Robuste : évite les 'never' qui cassent l'inférence
  */
+// Version simplifiée qui marche avec nos types générés
 export type PathValue<T, P extends string> = P extends keyof T
 	? T[P]
-	: P extends `${infer K}.${infer R}`
-		? K extends keyof T
-			? T[K] extends Record<string, unknown>
-				? PathValue<T[K], R>
-				: never
+	: P extends `${infer Key}.${infer Rest}`
+		? Key extends keyof T
+			? PathValue<T[Key], Rest>
 			: never
 		: never
 
 /**
- * Base configuration schema that can be extended by projects
- * The actual schema is defined via module augmentation in generated-types.d.ts
- * Empty base allows module augmentation to define precise schema
+ * Configuration schema interface - automatically populated from generated types
+ * This interface is dynamically extended by module augmentation from generated config schema
  */
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export interface BaseConfigSchema {
-	// Empty base - specific properties defined via module augmentation only
-}
+export interface ConfigSchema extends Record<string, unknown> {}
 
 /**
- * Global interface that can be augmented by the user project
- * to provide automatic type inference for their specific config structure
- *
- * Example usage in user project:
- * ```typescript
- * declare module '@nextnode/config-manager' {
- *   interface UserConfigSchema {
- *     app: { name: string; debug: boolean }
- *     email: { from: string; provider: string }
- *   }
- * }
- * ```
- */
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export interface UserConfigSchema extends BaseConfigSchema {}
-
-/**
- * Detected config type - uses UserConfigSchema from module augmentation
+ * Detected config type - uses ConfigSchema from generated types
  * Types are generated automatically from the project's config files
  */
-export type DetectedConfigType = UserConfigSchema
+export type DetectedConfigType = ConfigSchema
 
 /**
- * Auto-detected configuration paths based on user schema
+ * Auto-detected configuration paths based on generated schema
  */
-export type AutoConfigPath = ConfigPath<UserConfigSchema>
+export type AutoConfigPath = ConfigPath<ConfigSchema>
 
 /**
  * Utility type for testing - extracts a property type from ConfigValue

@@ -5,6 +5,7 @@
 		"features": ["config", "logging", "metrics", "monitoring"]
 	},
 	"email": {
+		"from": "noreply@nextnode.com",
 		"provider": "sendgrid",
 		"templates": {
 			"welcome": {
@@ -17,6 +18,7 @@
 		"host": "prod-db.nextnode.com",
 		"port": 5432,
 		"name": "nextnode_production",
+		"debug": false,
 		"ssl": true,
 		"connectionPoolSize": 20
 	},

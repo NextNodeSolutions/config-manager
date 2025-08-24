@@ -109,21 +109,6 @@ export function getConfig(path?: string, environment?: string): unknown {
 }
 
 /**
- * Get configuration value with perfect type inference (debug version)
- */
-export const getConfigTyped = <TPath extends AutoConfigPath>(
-	path: TPath,
-): PathValue<ConfigSchema, TPath> => {
-	const loader = ensureGlobalLoader()
-	const config = loader.loadConfig(resolveEnvironment())
-	const value = getNestedValue(config, path)
-	if (value === undefined) {
-		throw new ConfigurationPathError(path, resolveEnvironment())
-	}
-	return value as PathValue<ConfigSchema, TPath>
-}
-
-/**
  * Check if a configuration path exists with automatic type inference
  */
 export function hasConfig<TPath extends AutoConfigPath>(path: TPath): boolean

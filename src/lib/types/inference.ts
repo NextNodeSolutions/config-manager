@@ -28,34 +28,26 @@ export const escapeStringLiteral = (str: string): string =>
 export const valueToLiteralType = (value: unknown): string => {
 	if (value === null) return 'null'
 	if (value === undefined) return 'undefined'
-
-	switch (typeof value) {
-		case 'string':
-			return `'${escapeStringLiteral(value)}'`
-		case 'number':
-			return value.toString()
-		case 'boolean':
-			return value.toString()
-		default:
-			return 'unknown'
-	}
-}
-
-/**
- * Helper pour extraire le type d'un item
- */
-const getItemType = (item: unknown): string => {
-	if (typeof item === 'string') return 'string'
-	if (typeof item === 'number') return 'number'
-	if (typeof item === 'boolean') return 'boolean'
-	if (item === null) return 'null'
+	if (typeof value === 'string') return `'${escapeStringLiteral(value)}'`
+	if (typeof value === 'number') return value.toString()
+	if (typeof value === 'boolean') return value.toString()
 	return 'unknown'
 }
 
 /**
- * Smart array typing qui essaye de faire des tuples précis
+ * Smart array typing that attempts to create precise tuple types
+ * @internal Used by generator.ts for type generation
  */
 export const smartArrayUnionType = (arrays: unknown[][]): string => {
+	// Helper to extract item type
+	const getItemType = (item: unknown): string => {
+		if (typeof item === 'string') return 'string'
+		if (typeof item === 'number') return 'number'
+		if (typeof item === 'boolean') return 'boolean'
+		if (item === null) return 'null'
+		return 'unknown'
+	}
+
 	// Check tuple possibility
 	const firstLength = arrays[0]?.length ?? 0
 	if (arrays.every(arr => arr.length === firstLength) && firstLength > 0) {
@@ -64,13 +56,13 @@ export const smartArrayUnionType = (arrays: unknown[][]): string => {
 			return Array.from(typesAtPos)
 		})
 
-		// Si chaque position a un seul type → tuple
+		// If each position has a single type → tuple
 		if (positionTypes.every(types => types.length === 1)) {
 			return `readonly [${positionTypes.map(types => types[0]).join(', ')}]`
 		}
 	}
 
-	// Fallback → array générique
+	// Fallback → generic array
 	const allTypes = new Set(arrays.flat().map(getItemType))
 	return `readonly (${Array.from(allTypes).join(' | ')})[]`
 }

@@ -4,7 +4,7 @@ import { join } from 'node:path'
 import { tmpdir } from 'node:os'
 
 import { generateConfigTypes } from '@/lib/types/generator.js'
-import { getConfig, getConfigTyped, initConfig } from '@/index.js'
+import { getConfig, initConfig } from '@/index.js'
 
 // Import generated types for precise type inference validation
 import type { GeneratedConfigSchema } from '@/__tests__/fixtures/configs/generated-types.d.ts'
@@ -244,8 +244,8 @@ describe('Type Generation', () => {
 			console.log('app.name:', typeof appName, appName)
 			console.log('email.provider:', typeof emailProvider, emailProvider)
 
-			// Test avec getConfigTyped qui doit marcher
-			const featuresTyped = getConfigTyped('app.features')
+			// Test avec getConfig qui doit marcher
+			const featuresTyped = getConfig('app.features')
 			expect(Array.isArray(featuresTyped)).toBe(true)
 
 			// All elements should be from the expected set

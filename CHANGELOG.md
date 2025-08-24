@@ -1,5 +1,17 @@
 # @nextnode/functions-server
 
+## 3.0.1
+
+### Patch Changes
+
+- [#18](https://github.com/NextNodeSolutions/config-manager/pull/18) [`079eb14`](https://github.com/NextNodeSolutions/config-manager/commit/079eb141544e5c634d074402b2f19bd1229c5747) Thanks [@walid-mos](https://github.com/walid-mos)! - Fix TypeScript path resolution in build output
+
+  - Add tsc-alias dependency to resolve @/ paths during build process
+  - Update build script to run tsc-alias after TypeScript compilation
+  - Fix module resolution issue where @/lib paths weren't resolved in dist output
+  - Ensure built package can be imported correctly from external projects
+  - All existing functionality preserved with improved build reliability
+
 ## 3.0.0
 
 ### Major Changes

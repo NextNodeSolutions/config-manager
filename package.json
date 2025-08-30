@@ -35,6 +35,7 @@
     "generate": "node dist/cli/generate-types.js",
     "generate-config-types": "pnpm build && node dist/cli/generate-types.js",
     "generate-test-types": "pnpm generate-config-types src/__tests__/fixtures/configs src/__tests__/fixtures/configs/generated-types.d.ts",
+    "postinstall": "node dist/cli/generate-types.js --auto",
     "lint": "eslint . --max-warnings 0",
     "lint-staged": "lint-staged",
     "lint:fix": "eslint . --max-warnings 0 --fix",

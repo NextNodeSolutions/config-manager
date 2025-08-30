@@ -2,6 +2,7 @@ import { getNestedValue } from '@/lib/utils/helpers.js'
 import { resolveEnvironment } from '@/lib/utils/validation.js'
 import { autoGenerateTypes } from '@/lib/types/generator.js'
 import { ConfigurationPathError } from '@/lib/definitions/errors.js'
+import { configLogger } from '@/lib/utils/logger.js'
 
 import { ConfigLoader } from './loader.js'
 
@@ -53,7 +54,14 @@ export const initConfig = async <TSchema = ConfigSchema>(
 			options.configDir ? { configDir: options.configDir } : {},
 		)
 	} catch (error) {
-		console.error('❌ Type generation failed during initialization:', error)
+		const errorMessage =
+			error instanceof Error ? error.message : String(error)
+		configLogger.error(
+			`Type generation failed during initialization: ${errorMessage}`,
+			{
+				scope: 'init-error',
+			},
+		)
 		throw new Error(
 			'Configuration type generation is required but failed during initialization',
 		)

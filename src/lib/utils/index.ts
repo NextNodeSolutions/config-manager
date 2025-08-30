@@ -8,3 +8,4 @@ export {
 	getCurrentEnvironment,
 	resolveEnvironment,
 } from './validation.js'
+export { logger, typeLogger, configLogger, cliLogger } from './logger.js'

@@ -10,11 +10,13 @@ import { join, extname, basename, dirname, relative, resolve } from 'node:path'
 import { createHash } from 'node:crypto'
 
 import { smartArrayUnionType } from './inference.js'
+import { typeLogger } from '../utils/logger.js'
 
 interface AutoTypeOptions {
 	configDir?: string
 	outputFile?: string
 	force?: boolean
+	silent?: boolean
 }
 
 let hasGeneratedTypes = false
@@ -34,10 +36,10 @@ export const autoGenerateTypes = async (
 	// Detect user project
 	const projectRoot = detectUserProject()
 	if (!projectRoot) {
-		// We're not in a user project (maybe in development of config-manager itself)
-		if (process.env.NODE_ENV !== 'test') {
-			console.log('❌ No user project detected, skipping type generation')
-			console.log('Current directory:', process.cwd())
+		if (!options.silent && process.env.NODE_ENV !== 'test') {
+			typeLogger.info('No user project detected', {
+				scope: 'auto-generation',
+			})
 		}
 		return false
 	}
@@ -69,7 +71,11 @@ export const autoGenerateTypes = async (
 
 	// Check if generation is needed
 	if (!options.force && !hasConfigChanged(configDir, generatedTypesFile)) {
-		console.log('⚡ Config types are up to date')
+		if (!options.silent) {
+			typeLogger.info('Config types are up to date', {
+				scope: 'cache-check',
+			})
+		}
 		hasGeneratedTypes = true
 		return true
 	}
@@ -78,11 +84,22 @@ export const autoGenerateTypes = async (
 		// Create generated types directory
 		mkdirSync(generatedTypesDir, { recursive: true })
 
-		await generateTypes(configDir, generatedTypesFile, projectRoot)
+		await generateTypes(
+			configDir,
+			generatedTypesFile,
+			projectRoot,
+			options.silent,
+		)
 		hasGeneratedTypes = true
 		return true
 	} catch (error) {
-		console.error('❌ Auto type generation failed:', error)
+		if (!options.silent) {
+			const errorMessage =
+				error instanceof Error ? error.message : String(error)
+			typeLogger.error(`Auto type generation failed: ${errorMessage}`, {
+				scope: 'auto-generation-error',
+			})
+		}
 		return false
 	}
 }
@@ -124,7 +141,14 @@ export const generateConfigTypes = (configDir: string): string => {
 			const content = readFileSync(filePath, 'utf-8')
 			configs[configName] = JSON.parse(content)
 		} catch (error) {
-			console.warn(`Warning: Failed to parse ${file}:`, error)
+			const errorMessage =
+				error instanceof Error ? error.message : String(error)
+			typeLogger.warn(
+				`Failed to parse config file ${file}: ${errorMessage}`,
+				{
+					scope: 'json-parse',
+				},
+			)
 		}
 	})
 
@@ -518,6 +542,7 @@ const generateTypes = async (
 	configDir: string,
 	outputFile: string,
 	projectRoot: string,
+	silent = false,
 ): Promise<void> => {
 	try {
 		// Validate output path for security
@@ -549,11 +574,25 @@ const generateTypes = async (
 		const relativeOutputFile = relative(projectRoot, outputFile)
 		const relativeConfigDir = relative(projectRoot, configDir)
 
-		console.log(
-			`✅ Generated config types: ${relativeOutputFile} (from ${relativeConfigDir})`,
-		)
+		if (!silent) {
+			typeLogger.info(
+				`Generated types: ${relativeOutputFile} (from ${relativeConfigDir})`,
+				{
+					scope: 'type-generation',
+				},
+			)
+		}
 	} catch (error) {
-		console.error(`❌ Failed to generate config types:`, error)
+		if (!silent) {
+			const errorMessage =
+				error instanceof Error ? error.message : String(error)
+			typeLogger.error(
+				`Failed to generate config types: ${errorMessage}`,
+				{
+					scope: 'generation-error',
+				},
+			)
+		}
 		throw error
 	}
 }
@@ -561,7 +600,9 @@ const generateTypes = async (
 /**
  * Auto-detect user project and generate types
  */
-export const autoGenerateForUserProject = (): boolean => {
+export const autoGenerateForUserProject = (
+	options: { silent?: boolean } = {},
+): boolean => {
 	// Find the user project root (go up from node_modules)
 	const currentDir = process.cwd()
 	let projectRoot = currentDir
@@ -591,15 +632,28 @@ export const autoGenerateForUserProject = (): boolean => {
 		writeFileSync(outputFile, typeDeclaration)
 
 		// Create relative paths from project root
-		const relativeOutputFile = relative(projectRoot, outputFile)
-		const relativeConfigDir = relative(projectRoot, configDir)
-
-		console.log(
-			`✅ Generated config types: ${relativeOutputFile} (from ${relativeConfigDir})`,
-		)
+		if (!options.silent) {
+			const relativeOutputFile = relative(projectRoot, outputFile)
+			const relativeConfigDir = relative(projectRoot, configDir)
+			typeLogger.info(
+				`Generated types: ${relativeOutputFile} (from ${relativeConfigDir})`,
+				{
+					scope: 'auto-generation',
+				},
+			)
+		}
 		return true
 	} catch (error) {
-		console.error('❌ Failed to generate config types:', error)
+		if (!options.silent) {
+			const errorMessage =
+				error instanceof Error ? error.message : String(error)
+			typeLogger.error(
+				`Failed to generate config types: ${errorMessage}`,
+				{
+					scope: 'auto-generation-error',
+				},
+			)
+		}
 		return false
 	}
 }

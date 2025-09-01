@@ -1,5 +1,11 @@
 # @nextnode/functions-server
 
+## 3.1.0
+
+### Minor Changes
+
+- [#20](https://github.com/NextNodeSolutions/config-manager/pull/20) [`40e0d5a`](https://github.com/NextNodeSolutions/config-manager/commit/40e0d5a366a61f97bbccd7a482489dd711646c1f) Thanks [@walid-mos](https://github.com/walid-mos)! - Minor update with improvements and new features
+
 ## 3.0.1
 
 ### Patch Changes

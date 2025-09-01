@@ -245,15 +245,18 @@ const createUnionType = (values: Set<unknown>): string => {
 		return smartArrayUnionType(Array.from(values) as unknown[][])
 	}
 
-	// Sinon union normale
-	const types = Array.from(values).map(value => {
-		if (value === null) return 'null'
-		if (typeof value === 'string') return `'${value.replace(/'/g, "\\'")}'`
-		if (typeof value === 'number') return value.toString()
-		if (typeof value === 'boolean') return value.toString()
-		if (Array.isArray(value)) return 'readonly string[]'
-		return 'unknown'
-	})
+	// Sinon union normale - trier pour un ordre déterministe
+	const types = Array.from(values)
+		.map(value => {
+			if (value === null) return 'null'
+			if (typeof value === 'string')
+				return `'${value.replace(/'/g, "\\'")}'`
+			if (typeof value === 'number') return value.toString()
+			if (typeof value === 'boolean') return value.toString()
+			if (Array.isArray(value)) return 'readonly string[]'
+			return 'unknown'
+		})
+		.sort()
 
 	return types.join(' | ')
 }
@@ -277,50 +280,54 @@ const generateMergedStructure = (
 
 	if (configValues.length === 0) return 'Record<string, unknown>'
 
-	// Get all possible keys from all configs
+	// Get all possible keys from all configs and SORT them for deterministic output
 	const allKeys = new Set<string>()
 	configValues.forEach(config => {
 		Object.keys(config).forEach(key => allKeys.add(key))
 	})
 
-	const properties = Array.from(allKeys).map(key => {
-		const fullPath = currentPath ? `${currentPath}.${key}` : key
+	const properties = Array.from(allKeys)
+		.sort()
+		.map(key => {
+			const fullPath = currentPath ? `${currentPath}.${key}` : key
 
-		// Check if this path has collected values (primitive types)
-		if (allValues.has(fullPath)) {
-			const values = allValues.get(fullPath)!
-			const unionType = createUnionType(values)
-			return `${indent}  readonly ${key}: ${unionType}`
-		}
-
-		// This must be a nested object - recurse
-		const nestedConfigs: Record<string, unknown> = {}
-		Object.entries(configs).forEach(([env, envConfig]) => {
-			if (
-				envConfig &&
-				typeof envConfig === 'object' &&
-				!Array.isArray(envConfig) &&
-				(envConfig as Record<string, unknown>)[key] &&
-				typeof (envConfig as Record<string, unknown>)[key] ===
-					'object' &&
-				!Array.isArray((envConfig as Record<string, unknown>)[key])
-			) {
-				nestedConfigs[env] = (envConfig as Record<string, unknown>)[key]
+			// Check if this path has collected values (primitive types)
+			if (allValues.has(fullPath)) {
+				const values = allValues.get(fullPath)!
+				const unionType = createUnionType(values)
+				return `${indent}  readonly ${key}: ${unionType}`
 			}
+
+			// This must be a nested object - recurse
+			const nestedConfigs: Record<string, unknown> = {}
+			Object.entries(configs).forEach(([env, envConfig]) => {
+				if (
+					envConfig &&
+					typeof envConfig === 'object' &&
+					!Array.isArray(envConfig) &&
+					(envConfig as Record<string, unknown>)[key] &&
+					typeof (envConfig as Record<string, unknown>)[key] ===
+						'object' &&
+					!Array.isArray((envConfig as Record<string, unknown>)[key])
+				) {
+					nestedConfigs[env] = (envConfig as Record<string, unknown>)[
+						key
+					]
+				}
+			})
+
+			if (Object.keys(nestedConfigs).length > 0) {
+				const nestedType = generateMergedStructure(
+					nestedConfigs,
+					allValues,
+					fullPath,
+					depth + 1,
+				)
+				return `${indent}  readonly ${key}: ${nestedType}`
+			}
+
+			return `${indent}  readonly ${key}: unknown`
 		})
-
-		if (Object.keys(nestedConfigs).length > 0) {
-			const nestedType = generateMergedStructure(
-				nestedConfigs,
-				allValues,
-				fullPath,
-				depth + 1,
-			)
-			return `${indent}  readonly ${key}: ${nestedType}`
-		}
-
-		return `${indent}  readonly ${key}: unknown`
-	})
 
 	return `{\n${properties.join('\n')}\n${indent}}`
 }
@@ -439,38 +446,39 @@ const getConfigDirectory = (
 }
 
 /**
- * Calculate hash of all config files content for change detection
- */
-const getConfigHash = (configDir: string): string => {
-	const files = readdirSync(configDir)
-		.filter(file => file.endsWith('.json'))
-		.sort()
-
-	let combinedContent = ''
-	for (const file of files) {
-		const filePath = join(configDir, file)
-		combinedContent += readFileSync(filePath, 'utf-8')
-	}
-
-	return createHash('md5').update(combinedContent).digest('hex')
-}
-
-/**
  * Check if config files have changed since last generation
+ * Uses content-based comparison to avoid unnecessary regenerations
  */
 const hasConfigChanged = (configDir: string, outputFile: string): boolean => {
 	if (!existsSync(outputFile)) return true
 
-	// Read the hash from the generated file header
-	const generatedContent = readFileSync(outputFile, 'utf-8')
-	const hashMatch = generatedContent.match(/Generated hash: ([a-f0-9]{32})/)
+	try {
+		// Generate what the new content would be
+		const newContent = generateConfigTypes(configDir)
+		const newHash = createHash('md5').update(newContent).digest('hex')
 
-	if (!hashMatch) return true
+		// Read the existing file and extract its hash
+		const existingContent = readFileSync(outputFile, 'utf-8')
+		const hashMatch = existingContent.match(
+			/Generated hash: ([a-f0-9]{32})/,
+		)
 
-	const oldHash = hashMatch[1]
-	const newHash = getConfigHash(configDir)
+		if (!hashMatch) {
+			// No hash found, but let's compare content directly (excluding hash line)
+			const existingWithoutHash = existingContent.replace(
+				/\* Generated hash: [a-f0-9]{32}\n/,
+				'',
+			)
+			const newWithoutHash = newContent
+			return existingWithoutHash.trim() !== newWithoutHash.trim()
+		}
 
-	return oldHash !== newHash
+		const existingHash = hashMatch[1]
+		return existingHash !== newHash
+	} catch {
+		// If there's any error in comparison, regenerate to be safe
+		return true
+	}
 }
 
 /**
@@ -513,11 +521,11 @@ const generateTypes = async (
 	// Generate type content
 	const typeContent = generateConfigTypes(configDir)
 
-	// Add hash to the generated content for change detection
-	const configHash = getConfigHash(configDir)
+	// Add hash of the generated content for precise change detection
+	const contentHash = createHash('md5').update(typeContent).digest('hex')
 	const contentWithHash = typeContent.replace(
 		'* DO NOT EDIT MANUALLY - This file is automatically generated',
-		`* DO NOT EDIT MANUALLY - This file is automatically generated\n * Generated hash: ${configHash}`,
+		`* DO NOT EDIT MANUALLY - This file is automatically generated\n * Generated hash: ${contentHash}`,
 	)
 
 	writeFileSync(outputFile, contentWithHash)

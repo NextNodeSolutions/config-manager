@@ -77,7 +77,7 @@ describe('Type Generation', () => {
 			const typeDeclaration = generateConfigTypes(configDir)
 
 			expect(typeDeclaration).toContain('readonly port: 3000 | 3001')
-			expect(typeDeclaration).toContain('readonly timeout: 5000 | 10000')
+			expect(typeDeclaration).toContain('readonly timeout: 10000 | 5000')
 		})
 
 		it('should generate exact boolean literal types for boolean values', () => {
@@ -311,7 +311,7 @@ describe('Type Generation', () => {
 				'readonly maxConnections: 100 | 1000',
 			)
 			expect(typeDeclaration).toContain(
-				'readonly enableCache: true | false',
+				'readonly enableCache: false | true',
 			)
 			expect(typeDeclaration).toContain(
 				"readonly cacheType: 'memory' | 'redis'",

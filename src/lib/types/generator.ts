@@ -10,11 +10,13 @@ import { join, extname, basename, dirname, relative, resolve } from 'node:path'
 import { createHash } from 'node:crypto'
 
 import { smartArrayUnionType } from './inference.js'
+import { typeLogger } from '../utils/logger.js'
 
 interface AutoTypeOptions {
 	configDir?: string
 	outputFile?: string
 	force?: boolean
+	silent?: boolean
 }
 
 let hasGeneratedTypes = false
@@ -34,10 +36,10 @@ export const autoGenerateTypes = async (
 	// Detect user project
 	const projectRoot = detectUserProject()
 	if (!projectRoot) {
-		// We're not in a user project (maybe in development of config-manager itself)
-		if (process.env.NODE_ENV !== 'test') {
-			console.log('❌ No user project detected, skipping type generation')
-			console.log('Current directory:', process.cwd())
+		if (!options.silent && process.env.NODE_ENV !== 'test') {
+			typeLogger.info('No user project detected', {
+				scope: 'auto-generation',
+			})
 		}
 		return false
 	}
@@ -45,22 +47,13 @@ export const autoGenerateTypes = async (
 	// Get config directory
 	const configDir = getConfigDirectory(projectRoot, options.configDir)
 
-	// Find our package location using require.resolve (works with all package managers)
-	let packagePath: string
-	try {
-		packagePath = dirname(
-			require.resolve('@nextnode/config-manager/package.json', {
-				paths: [projectRoot],
-			}),
-		)
-	} catch {
-		// Fallback for development/testing
-		packagePath = resolve(dirname(__filename), '../../..')
-	}
+	// Determine output path - use provided outputFile or default to types/config.d.ts in project root
+	const outputFile = options.outputFile
+		? resolve(projectRoot, options.outputFile)
+		: join(projectRoot, 'types', 'config.d.ts')
 
-	// Prisma-style generation in our own package
-	const generatedTypesDir = join(packagePath, '.generated-types')
-	const generatedTypesFile = join(generatedTypesDir, 'index.d.ts')
+	const generatedTypesDir = dirname(outputFile)
+	const generatedTypesFile = outputFile
 	if (!existsSync(configDir)) {
 		throw new Error(
 			`Config directory not found: ${configDir}. Make sure the config directory exists or specify a custom path via configDir option.`,
@@ -69,22 +62,26 @@ export const autoGenerateTypes = async (
 
 	// Check if generation is needed
 	if (!options.force && !hasConfigChanged(configDir, generatedTypesFile)) {
-		console.log('⚡ Config types are up to date')
+		if (!options.silent) {
+			typeLogger.info('Config types are up to date', {
+				scope: 'cache-check',
+			})
+		}
 		hasGeneratedTypes = true
 		return true
 	}
 
-	try {
-		// Create generated types directory
-		mkdirSync(generatedTypesDir, { recursive: true })
+	// Create generated types directory
+	mkdirSync(generatedTypesDir, { recursive: true })
 
-		await generateTypes(configDir, generatedTypesFile, projectRoot)
-		hasGeneratedTypes = true
-		return true
-	} catch (error) {
-		console.error('❌ Auto type generation failed:', error)
-		return false
-	}
+	await generateTypes(
+		configDir,
+		generatedTypesFile,
+		projectRoot,
+		options.silent,
+	)
+	hasGeneratedTypes = true
+	return true
 }
 
 /**
@@ -120,12 +117,8 @@ export const generateConfigTypes = (configDir: string): string => {
 		const filePath = join(configDir, file)
 		const configName = basename(file, '.json')
 
-		try {
-			const content = readFileSync(filePath, 'utf-8')
-			configs[configName] = JSON.parse(content)
-		} catch (error) {
-			console.warn(`Warning: Failed to parse ${file}:`, error)
-		}
+		const content = readFileSync(filePath, 'utf-8')
+		configs[configName] = JSON.parse(content)
 	})
 
 	// Validate consistency between environments
@@ -417,16 +410,10 @@ const detectUserProject = (): string | null => {
 	// Check if we're in the config-manager package itself
 	const packageJsonPath = join(currentDir, 'package.json')
 	if (existsSync(packageJsonPath)) {
-		try {
-			const packageJson = JSON.parse(
-				readFileSync(packageJsonPath, 'utf-8'),
-			)
-			if (packageJson.name === '@nextnode/config-manager') {
-				// We're in the config-manager package itself, don't auto-generate
-				return null
-			}
-		} catch {
-			// Invalid package.json, continue with config check
+		const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8'))
+		if (packageJson.name === '@nextnode/config-manager') {
+			// We're in the config-manager package itself, don't auto-generate
+			return null
 		}
 	}
 
@@ -474,22 +461,16 @@ const getConfigHash = (configDir: string): string => {
 const hasConfigChanged = (configDir: string, outputFile: string): boolean => {
 	if (!existsSync(outputFile)) return true
 
-	try {
-		// Read the hash from the generated file header
-		const generatedContent = readFileSync(outputFile, 'utf-8')
-		const hashMatch = generatedContent.match(
-			/Generated hash: ([a-f0-9]{32})/,
-		)
+	// Read the hash from the generated file header
+	const generatedContent = readFileSync(outputFile, 'utf-8')
+	const hashMatch = generatedContent.match(/Generated hash: ([a-f0-9]{32})/)
 
-		if (!hashMatch) return true
+	if (!hashMatch) return true
 
-		const oldHash = hashMatch[1]
-		const newHash = getConfigHash(configDir)
+	const oldHash = hashMatch[1]
+	const newHash = getConfigHash(configDir)
 
-		return oldHash !== newHash
-	} catch {
-		return true
-	}
+	return oldHash !== newHash
 }
 
 /**
@@ -499,16 +480,12 @@ const validateOutputPath = (
 	outputFile: string,
 	projectRoot: string,
 ): boolean => {
-	try {
-		const resolvedOutput = resolve(outputFile)
-		const resolvedProject = resolve(projectRoot)
-		const relativePath = relative(resolvedProject, resolvedOutput)
+	const resolvedOutput = resolve(outputFile)
+	const resolvedProject = resolve(projectRoot)
+	const relativePath = relative(resolvedProject, resolvedOutput)
 
-		// Check if the path tries to escape the project directory
-		return !relativePath.startsWith('..')
-	} catch {
-		return false
-	}
+	// Check if the path tries to escape the project directory
+	return !relativePath.startsWith('..')
 }
 
 /**
@@ -518,88 +495,43 @@ const generateTypes = async (
 	configDir: string,
 	outputFile: string,
 	projectRoot: string,
+	silent = false,
 ): Promise<void> => {
-	try {
-		// Validate output path for security
-		if (!validateOutputPath(outputFile, projectRoot)) {
-			throw new Error(
-				`Invalid output path: ${outputFile}. Path traversal detected.`,
-			)
-		}
-
-		// Ensure types directory exists
-		const typesDir = dirname(outputFile)
-		if (!existsSync(typesDir)) {
-			mkdirSync(typesDir, { recursive: true })
-		}
-
-		// Generate type content
-		const typeContent = generateConfigTypes(configDir)
-
-		// Add hash to the generated content for change detection
-		const configHash = getConfigHash(configDir)
-		const contentWithHash = typeContent.replace(
-			'* DO NOT EDIT MANUALLY - This file is automatically generated',
-			`* DO NOT EDIT MANUALLY - This file is automatically generated\n * Generated hash: ${configHash}`,
+	// Validate output path for security
+	if (!validateOutputPath(outputFile, projectRoot)) {
+		throw new Error(
+			`Invalid output path: ${outputFile}. Path traversal detected.`,
 		)
-
-		writeFileSync(outputFile, contentWithHash)
-
-		// Create relative paths from project root
-		const relativeOutputFile = relative(projectRoot, outputFile)
-		const relativeConfigDir = relative(projectRoot, configDir)
-
-		console.log(
-			`✅ Generated config types: ${relativeOutputFile} (from ${relativeConfigDir})`,
-		)
-	} catch (error) {
-		console.error(`❌ Failed to generate config types:`, error)
-		throw error
-	}
-}
-
-/**
- * Auto-detect user project and generate types
- */
-export const autoGenerateForUserProject = (): boolean => {
-	// Find the user project root (go up from node_modules)
-	const currentDir = process.cwd()
-	let projectRoot = currentDir
-
-	// If we're in node_modules/@nextnode/config-manager, go up to find project root
-	if (currentDir.includes('node_modules/@nextnode/config-manager')) {
-		const parts = currentDir.split('node_modules')
-		projectRoot = parts[0] || currentDir
 	}
 
-	const configDir = join(projectRoot, 'config')
-	if (!existsSync(configDir)) {
-		// No config directory found, skip generation
-		return false
+	// Ensure types directory exists
+	const typesDir = dirname(outputFile)
+	if (!existsSync(typesDir)) {
+		mkdirSync(typesDir, { recursive: true })
 	}
 
-	const outputFile = join(projectRoot, 'types', 'config.d.ts')
+	// Generate type content
+	const typeContent = generateConfigTypes(configDir)
 
-	try {
-		// Ensure types directory exists
-		const typesDir = dirname(outputFile)
-		if (!existsSync(typesDir)) {
-			mkdirSync(typesDir, { recursive: true })
-		}
+	// Add hash to the generated content for change detection
+	const configHash = getConfigHash(configDir)
+	const contentWithHash = typeContent.replace(
+		'* DO NOT EDIT MANUALLY - This file is automatically generated',
+		`* DO NOT EDIT MANUALLY - This file is automatically generated\n * Generated hash: ${configHash}`,
+	)
 
-		const typeDeclaration = generateConfigTypes(configDir)
-		writeFileSync(outputFile, typeDeclaration)
+	writeFileSync(outputFile, contentWithHash)
 
-		// Create relative paths from project root
-		const relativeOutputFile = relative(projectRoot, outputFile)
-		const relativeConfigDir = relative(projectRoot, configDir)
+	// Create relative paths from project root
+	const relativeOutputFile = relative(projectRoot, outputFile)
+	const relativeConfigDir = relative(projectRoot, configDir)
 
-		console.log(
-			`✅ Generated config types: ${relativeOutputFile} (from ${relativeConfigDir})`,
+	if (!silent) {
+		typeLogger.info(
+			`Generated types: ${relativeOutputFile} (from ${relativeConfigDir})`,
+			{
+				scope: 'type-generation',
+			},
 		)
-		return true
-	} catch (error) {
-		console.error('❌ Failed to generate config types:', error)
-		return false
 	}
 }

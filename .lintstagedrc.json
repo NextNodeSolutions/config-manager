@@ -1,10 +1,9 @@
 {
 	"!(src/__tests__/fixtures/configs/generated-types.d.ts|*.config.*)*.{js,jsx,ts,tsx}": [
-		"pnpm lint:fix"
+		"pnpm lint"
 	],
-	"*.{js,jsx,ts,tsx,jsonc,md}": [
+	"package.json": ["better-sort-package-json"],
+	"*.{js,jsx,ts,tsx,json,jsonc,md,yml}": [
 		"biome check --write --no-errors-on-unmatched --staged"
-	],
-	"*.json": ["biome check --write --no-errors-on-unmatched --staged"],
-	"package.json": ["better-sort-package-json"]
+	]
 }

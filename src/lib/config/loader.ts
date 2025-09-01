@@ -94,15 +94,11 @@ export class ConfigLoader {
 			return this.availableConfigsCache
 		}
 
-		try {
-			this.availableConfigsCache = readdirSync(this.configDir)
-				.filter(file => file.endsWith(FILE_EXTENSIONS.JSON))
-				.map(file => file.replace(FILE_EXTENSIONS.JSON, ''))
-			return this.availableConfigsCache
-		} catch {
-			this.availableConfigsCache = []
-			return this.availableConfigsCache
-		}
+		this.availableConfigsCache = readdirSync(this.configDir)
+			.filter(file => file.endsWith(FILE_EXTENSIONS.JSON))
+			.map(file => file.replace(FILE_EXTENSIONS.JSON, ''))
+
+		return this.availableConfigsCache
 	}
 
 	/**
@@ -140,21 +136,23 @@ export class ConfigLoader {
 	 * Parse and validate a configuration file
 	 */
 	private parseConfigFile(configPath: string): ConfigObject {
+		const configContent = readFileSync(configPath, 'utf-8')
+
+		let parsedConfig: unknown
 		try {
-			const configContent = readFileSync(configPath, 'utf-8')
-			const parsedConfig = JSON.parse(configContent)
-
-			if (!validateConfig(parsedConfig)) {
-				throw new InvalidConfigFormatError(configPath)
-			}
-
-			return parsedConfig
+			parsedConfig = JSON.parse(configContent)
 		} catch (error) {
 			if (error instanceof SyntaxError) {
 				throw new InvalidJsonSyntaxError(configPath, error.message)
 			}
 			throw error
 		}
+
+		if (!validateConfig(parsedConfig)) {
+			throw new InvalidConfigFormatError(configPath)
+		}
+
+		return parsedConfig
 	}
 
 	/**

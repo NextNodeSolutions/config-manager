@@ -15,6 +15,11 @@ A powerful TypeScript configuration management library with **automatic type gen
 - **Path-based inference**: `getConfig('email.from')` returns the exact type
 - **Module augmentation**: Optional schema declaration for even more precise types
 
+### 💪 Robust & Maintainable
+- **Modern error handling**: Meaningful error propagation without silent failures
+- **Clean architecture**: Refactored codebase following modern TypeScript patterns
+- **Zero defensive coding**: Eliminates unnecessary try-catch blocks and fallbacks
+
 ## Core Features
 
 - 🚀 **Automatic type generation** - Generates precise TypeScript types from your JSON config files
@@ -26,6 +31,7 @@ A powerful TypeScript configuration management library with **automatic type gen
 - 🔄 **Intelligent caching** - Hash-based change detection, only regenerates when needed
 - ✅ **Configuration validation** - Built-in validation for required configuration paths
 - 🌍 **Environment detection** - Automatic environment detection with manual override
+- 💪 **Robust error handling** - Modern error patterns with meaningful error propagation
 - 📦 **Zero configuration** - Works out of the box for most project structures
 
 ## Installation
@@ -466,7 +472,23 @@ const config = getConfig()
 console.log(`Connecting to ${config.database.host}:${config.database.port}`)
 ```
 
-### 5. Structure for Multiple Environments
+### 5. Handle Configuration Errors Gracefully
+```typescript
+// ✅ The library now propagates meaningful errors
+try {
+  await initConfig({ configDir: './config' })
+} catch (error) {
+  // You'll get specific error messages for:
+  // - Missing config directory
+  // - Invalid JSON syntax
+  // - Configuration validation failures
+  // - Type generation issues
+  console.error('Configuration initialization failed:', error.message)
+  process.exit(1)
+}
+```
+
+### 6. Structure for Multiple Environments
 ```
 config/
 ├── default.json         # Base configuration
@@ -493,6 +515,12 @@ config/
 - Verify `NODE_ENV` is set correctly
 - Use `getEnvironment()` to debug current environment
 - Check `getAvailableEnvironments()` for valid options
+
+### Error Handling
+- The library uses modern error propagation patterns
+- Errors are no longer silently swallowed - you'll see meaningful messages
+- Configuration and type generation failures surface with specific details
+- Use try-catch blocks around `initConfig()` for graceful error handling
 
 ## Contributing
 

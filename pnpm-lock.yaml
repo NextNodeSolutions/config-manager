@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@nextnode/config-manager':
+        specifier: 'file:'
+        version: file:(astro@5.13.5(@types/node@22.15.21)(jiti@2.4.2)(rollup@4.41.1)(typescript@5.8.3)(yaml@2.8.0))(eslint@9.27.0(jiti@2.4.2))(vite@6.3.5(@types/node@22.15.21)(jiti@2.4.2)(yaml@2.8.0))
       '@nextnode/logger':
         specifier: ^0.2.3
         version: 0.2.3(eslint@9.27.0(jiti@2.4.2))
@@ -661,6 +664,20 @@ packages:
 
   '@next/eslint-plugin-next@15.3.2':
     resolution: {integrity: sha512-ijVRTXBgnHT33aWnDtmlG+LJD+5vhc9AKTJPquGG5NKXjpKNjc62woIhFtrAcWdBobt8kqjCoaJ0q6sDQoX7aQ==}
+
+  '@nextnode/config-manager@file:':
+    resolution: {directory: '', type: directory}
+    engines: {node: '>=20.0.0'}
+    hasBin: true
+    peerDependencies:
+      astro: '>=4.0.0'
+      eslint: ^9.22.0
+      vite: '>=5.0.0'
+    peerDependenciesMeta:
+      astro:
+        optional: true
+      vite:
+        optional: true
 
   '@nextnode/eslint-plugin@1.2.0':
     resolution: {integrity: sha512-aXwB0+aHPr2iWKpvj/bXsBKnl4OrW9S0C9YCTQXsPsw9jbOBaYlqgTr9QMIpQK/4gKyS1nO+iQcaEr7XF50NhA==}
@@ -4299,6 +4316,14 @@ snapshots:
   '@next/eslint-plugin-next@15.3.2':
     dependencies:
       fast-glob: 3.3.1
+
+  '@nextnode/config-manager@file:(astro@5.13.5(@types/node@22.15.21)(jiti@2.4.2)(rollup@4.41.1)(typescript@5.8.3)(yaml@2.8.0))(eslint@9.27.0(jiti@2.4.2))(vite@6.3.5(@types/node@22.15.21)(jiti@2.4.2)(yaml@2.8.0))':
+    dependencies:
+      '@nextnode/logger': 0.2.3(eslint@9.27.0(jiti@2.4.2))
+      eslint: 9.27.0(jiti@2.4.2)
+    optionalDependencies:
+      astro: 5.13.5(@types/node@22.15.21)(jiti@2.4.2)(rollup@4.41.1)(typescript@5.8.3)(yaml@2.8.0)
+      vite: 6.3.5(@types/node@22.15.21)(jiti@2.4.2)(yaml@2.8.0)
 
   '@nextnode/eslint-plugin@1.2.0(eslint@9.27.0(jiti@2.4.2))':
     dependencies:

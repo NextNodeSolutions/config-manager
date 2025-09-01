@@ -8,9 +8,13 @@ import {
 } from 'node:fs'
 import { join, extname, basename, dirname, relative, resolve } from 'node:path'
 import { createHash } from 'node:crypto'
+import { fileURLToPath } from 'node:url'
 
 import { smartArrayUnionType } from './inference.js'
 import { typeLogger } from '../utils/logger.js'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
 
 interface AutoTypeOptions {
 	configDir?: string
@@ -57,7 +61,7 @@ export const autoGenerateTypes = async (
 		)
 	} catch {
 		// Fallback for development/testing
-		packagePath = resolve(dirname(__filename), '../../..')
+		packagePath = resolve(__dirname, '../../..')
 	}
 
 	// Prisma-style generation in our own package

@@ -1,5 +1,11 @@
 # @nextnode/functions-server
 
+## 3.1.1
+
+### Patch Changes
+
+- [#22](https://github.com/NextNodeSolutions/config-manager/pull/22) [`367313f`](https://github.com/NextNodeSolutions/config-manager/commit/367313ff1fd99d1c3ce198d52a81d0e717b89056) Thanks [@walid-mos](https://github.com/walid-mos)! - Optimize type generation cache to prevent unnecessary rebuilds and improve performance
+
 ## 3.1.0
 
 ### Minor Changes

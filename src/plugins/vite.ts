@@ -35,6 +35,12 @@ export interface ConfigManagerPluginOptions {
 	configDir?: string
 
 	/**
+	 * Output file path relative to project root
+	 * @default 'types/config.d.ts'
+	 */
+	outputFile?: string
+
+	/**
 	 * Watch config files for changes in dev mode
 	 * @default true
 	 */
@@ -50,18 +56,28 @@ export interface ConfigManagerPluginOptions {
 export const configManagerPlugin = (
 	options: ConfigManagerPluginOptions = {},
 ): Plugin => {
-	const { configDir = 'config', watch = true, verbose = false } = options
+	const {
+		configDir = 'config',
+		outputFile,
+		watch = true,
+		verbose = false,
+	} = options
 
 	return {
 		name: 'config-manager',
 		async buildStart(): Promise<void> {
 			// Generate types before build
 			try {
-				const success = await autoGenerateTypes({
-					configDir,
-					force: true, // Always generate on build
-					silent: !verbose,
-				})
+				const generateOptions: Parameters<typeof autoGenerateTypes>[0] =
+					{
+						configDir,
+						force: true, // Always generate on build
+						silent: !verbose,
+					}
+				if (outputFile) {
+					generateOptions.outputFile = outputFile
+				}
+				const success = await autoGenerateTypes(generateOptions)
 
 				if (!success && verbose) {
 					typeLogger.info(
@@ -99,11 +115,17 @@ export const configManagerPlugin = (
 					}
 
 					try {
-						await autoGenerateTypes({
+						const reloadOptions: Parameters<
+							typeof autoGenerateTypes
+						>[0] = {
 							configDir,
 							force: true,
 							silent: !verbose,
-						})
+						}
+						if (outputFile) {
+							reloadOptions.outputFile = outputFile
+						}
+						await autoGenerateTypes(reloadOptions)
 
 						// Trigger HMR reload
 						server.ws.send({

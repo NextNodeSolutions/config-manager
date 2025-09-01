@@ -8,13 +8,9 @@ import {
 } from 'node:fs'
 import { join, extname, basename, dirname, relative, resolve } from 'node:path'
 import { createHash } from 'node:crypto'
-import { fileURLToPath } from 'node:url'
 
 import { smartArrayUnionType } from './inference.js'
 import { typeLogger } from '../utils/logger.js'
-
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = dirname(__filename)
 
 interface AutoTypeOptions {
 	configDir?: string
@@ -51,22 +47,13 @@ export const autoGenerateTypes = async (
 	// Get config directory
 	const configDir = getConfigDirectory(projectRoot, options.configDir)
 
-	// Find our package location using require.resolve (works with all package managers)
-	let packagePath: string
-	try {
-		packagePath = dirname(
-			require.resolve('@nextnode/config-manager/package.json', {
-				paths: [projectRoot],
-			}),
-		)
-	} catch {
-		// Fallback for development/testing
-		packagePath = resolve(__dirname, '../../..')
-	}
+	// Determine output path - use provided outputFile or default to types/config.d.ts in project root
+	const outputFile = options.outputFile
+		? resolve(projectRoot, options.outputFile)
+		: join(projectRoot, 'types', 'config.d.ts')
 
-	// Prisma-style generation in our own package
-	const generatedTypesDir = join(packagePath, '.generated-types')
-	const generatedTypesFile = join(generatedTypesDir, 'index.d.ts')
+	const generatedTypesDir = dirname(outputFile)
+	const generatedTypesFile = outputFile
 	if (!existsSync(configDir)) {
 		throw new Error(
 			`Config directory not found: ${configDir}. Make sure the config directory exists or specify a custom path via configDir option.`,

@@ -12,6 +12,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Intelligent type inference** with path-based type resolution
 - **Zero configuration setup** with automatic project and config directory detection
 - **Pure ESM package** with TypeScript strict mode
+- **Robust error handling** with modern patterns and meaningful error propagation
 - **Full test coverage** with Vitest and comprehensive integration testing
 - **Automated CI/CD** with quality gates and NPM publishing
 
@@ -19,25 +20,36 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Core Modules
 
-- **Configuration Management** (`src/core/`): Core configuration system with automatic type generation
+- **Configuration Management** (`src/lib/config/`): Core configuration system with automatic type generation
   - `manager.ts`: Public API for configuration access (initConfig, getConfig, validateRequiredConfig, etc.)
   - `loader.ts`: ConfigLoader class handling file loading, caching, and environment merging
-  - `type-generator.ts`: Automatic TypeScript type generation from JSON configs with smart caching
 
-- **Type System** (`src/definitions/`): TypeScript definitions and error handling
+- **Type Generation** (`src/lib/types/`): Automatic TypeScript type generation system
+  - `generator.ts`: Automatic TypeScript type generation from JSON configs with smart caching
+  - `inference.ts`: Advanced type inference utilities and smart array typing
+  - `index.ts`: Type system exports
+
+- **Definitions** (`src/lib/definitions/`): TypeScript definitions and error handling
   - `types.ts`: Complete type definitions for the configuration system including advanced types
   - `errors.ts`: Custom error classes for configuration failures with detailed messages
   - `constants.ts`: Environment constants, error codes, and configuration defaults
 
-- **Utilities** (`src/utils/`): Helper functions and validation
+- **Utilities** (`src/lib/utils/`): Helper functions and validation
   - `helpers.ts`: Deep merge, nested value utilities, and object manipulation
   - `validation.ts`: Configuration validation and environment detection
+  - `logger.ts`: Logging utilities for configuration and type generation
+
+- **Plugins** (`src/plugins/`): Build tool integrations
+  - `vite.ts`: Vite plugin for automatic type generation during build
+  - `astro.ts`: Astro integration wrapper
 
 ### Test Infrastructure
 
-- **Test Fixtures** (`src/__test-fixtures__/`): JSON config files for testing all scenarios
-- **Generated Types** (`src/__test-fixtures__/generated-types.d.ts`): Auto-generated test types
-- **Comprehensive Test Coverage**: Unit tests, integration tests, and type generation tests
+- **Test Fixtures** (`src/__tests__/fixtures/configs/`): JSON config files for testing all scenarios
+- **Generated Types** (`src/__tests__/fixtures/configs/generated-types.d.ts`): Auto-generated test types
+- **Unit Tests** (`src/__tests__/unit/`): Individual function and class testing
+- **Integration Tests** (`src/__tests__/integration/`): Full workflow and cross-module testing
+- **Comprehensive Test Coverage**: 128 tests covering all functionality and edge cases
 
 ## Development Commands
 
@@ -137,10 +149,11 @@ The library's flagship feature automatically generates TypeScript types from JSO
 6. Ensure GitHub Actions workflows pass in PR
 
 ### Working with Type Generation
-1. Test fixtures are in `src/__test-fixtures__/`
-2. Generated test types are at `src/__test-fixtures__/generated-types.d.ts`
+1. Test fixtures are in `src/__tests__/fixtures/configs/`
+2. Generated test types are at `src/__tests__/fixtures/configs/generated-types.d.ts`
 3. Use `pnpm generate-test-types` to regenerate during development
-4. Type generation logic is in `src/core/type-generator.ts`
+4. Type generation logic is in `src/lib/types/generator.ts`
+5. Advanced type inference utilities in `src/lib/types/inference.ts`
 
 ### Publishing Updates
 1. Create changeset: `pnpm changeset`
@@ -164,20 +177,26 @@ The library's flagship feature automatically generates TypeScript types from JSO
 - **Deep Readonly**: All generated types are deeply immutable
 - **Union Type Generation**: Automatically infers union types from actual config values
 
-### Error Handling
-- **Detailed Error Classes**: Specific error types for different failure scenarios
+### Error Handling Philosophy
+- **Modern Error Propagation**: Errors bubble up naturally with meaningful context
+- **No Silent Failures**: Eliminated empty catch blocks and defensive fallbacks
+- **Specific Error Classes**: Different error types for different failure scenarios
 - **Error Codes**: Standardized error codes for programmatic handling
-- **Helpful Messages**: Clear, actionable error messages for developers
+- **Clear Messages**: Actionable error messages that help developers debug issues
+- **Fail Fast**: Configuration issues are detected early and reported clearly
 
 ## Best Practices
 
-### Code Style
+### Code Style (Post-Refactoring)
 - Use arrow functions consistently
 - Prefer `const` over `let`
 - Use destructuring when beneficial
 - Avoid `any` types completely
 - Use `unknown` only as last resort
 - Prefer type inference over explicit typing when clear
+- **Let errors propagate naturally** - avoid empty catch blocks
+- **Use modern JavaScript features** - optional chaining, nullish coalescing
+- **Follow "Simplest but Never Easiest"** - clean, maintainable solutions over quick hacks
 
 ### Configuration Management
 - Always validate required configuration at startup
@@ -208,6 +227,27 @@ The library's flagship feature automatically generates TypeScript types from JSO
 
 ### Debugging
 - Use `pnpm test:ui` for interactive test debugging
-- Check generated types in `src/__test-fixtures__/generated-types.d.ts`
+- Check generated types in `src/__tests__/fixtures/configs/generated-types.d.ts`
 - Use `pnpm type-check` to validate TypeScript compilation
 - Enable verbose logging for configuration loading issues
+- **Error messages are now more descriptive** - no more silent failures or generic errors
+
+## Recent Improvements (Post-Refactoring)
+
+### Code Quality Enhancements
+- **Removed 15+ try-catch anti-patterns** - eliminated empty catch blocks and useless error re-throwing
+- **Simplified error handling** - modern error propagation instead of defensive coding
+- **Eliminated redundant code** - removed 161+ lines of defensive/duplicate code
+- **Better maintainability** - cleaner, more readable codebase following modern TypeScript patterns
+
+### Error Handling Modernization
+- **Direct error propagation** - meaningful errors reach developers instead of being swallowed
+- **Removed defensive fallbacks** - no more masking of real configuration issues
+- **Specific error context** - configuration, type generation, and validation failures provide actionable information
+- **Fail-fast approach** - problems are detected and reported immediately
+
+### Performance & Reliability
+- **Reduced overhead** - fewer unnecessary try-catch blocks
+- **Better debugging experience** - clear error messages and stack traces
+- **More predictable behavior** - eliminated silent failures and unexpected fallbacks
+- **Maintained functionality** - all 128 tests still pass, ensuring no regressions

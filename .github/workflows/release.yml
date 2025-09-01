@@ -5,7 +5,7 @@ on:
     branches: [main]
   workflow_dispatch:
 
-concurrency: 
+concurrency:
   group: release-${{ github.ref }}
   cancel-in-progress: false
 
@@ -16,7 +16,7 @@ jobs:
     with:
       run-lint: true
       run-typecheck: true
-      run-test: true
+      run-tests: true
       run-build: true
       test-coverage: false
       node-version: '20'
@@ -30,13 +30,13 @@ jobs:
       contents: write
       pull-requests: write
       packages: write
-      
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          
+
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
@@ -50,7 +50,7 @@ jobs:
 
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile
-        
+
       - name: Changesets Release
         uses: changesets/action@v1
         with:

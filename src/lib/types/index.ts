@@ -5,7 +5,6 @@
 export {
 	generateConfigTypes,
 	autoGenerateTypes,
-	autoGenerateForUserProject,
 	resetAutoGeneration,
 } from './generator.js'
 

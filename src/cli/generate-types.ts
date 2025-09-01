@@ -10,7 +10,7 @@ import { dirname } from 'node:path'
 
 import {
 	generateConfigTypes,
-	autoGenerateForUserProject,
+	autoGenerateTypes,
 } from '../lib/types/generator.js'
 import { cliLogger } from '../lib/utils/logger.js'
 
@@ -35,7 +35,7 @@ const generateWithPaths = (configDir: string, outputFile: string): void => {
 	})
 }
 
-const main = (): void => {
+const main = async (): Promise<void> => {
 	const { isAutoMode, paths } = parseArgs()
 
 	// Explicit paths mode
@@ -52,7 +52,7 @@ const main = (): void => {
 	}
 
 	// Auto-detect mode
-	const success = autoGenerateForUserProject({ silent: isAutoMode })
+	const success = await autoGenerateTypes({ silent: isAutoMode })
 	if (!success && !isAutoMode) {
 		cliLogger.info('No config directory found', {
 			scope: 'auto-detection',
@@ -62,12 +62,10 @@ const main = (): void => {
 }
 
 // Run and handle errors simply
-try {
-	main()
-} catch (error) {
+main().catch(error => {
 	const errorMessage = error instanceof Error ? error.message : String(error)
 	cliLogger.error(`Type generation failed: ${errorMessage}`, {
 		scope: 'cli-error',
 	})
 	process.exit(1)
-}
+})

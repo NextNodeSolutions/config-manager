@@ -67,33 +67,23 @@ export const configManagerPlugin = (
 		name: 'config-manager',
 		async buildStart(): Promise<void> {
 			// Generate types before build
-			try {
-				const generateOptions: Parameters<typeof autoGenerateTypes>[0] =
-					{
-						configDir,
-						force: true, // Always generate on build
-						silent: !verbose,
-					}
-				if (outputFile) {
-					generateOptions.outputFile = outputFile
-				}
-				const success = await autoGenerateTypes(generateOptions)
+			const generateOptions: Parameters<typeof autoGenerateTypes>[0] = {
+				configDir,
+				force: true, // Always generate on build
+				silent: !verbose,
+			}
+			if (outputFile) {
+				generateOptions.outputFile = outputFile
+			}
+			const success = await autoGenerateTypes(generateOptions)
 
-				if (!success && verbose) {
-					typeLogger.info(
-						'No config directory found, skipping type generation',
-						{
-							scope: 'vite-plugin',
-						},
-					)
-				}
-			} catch (error) {
-				// Don't fail the build if type generation fails
-				const errorMessage =
-					error instanceof Error ? error.message : String(error)
-				typeLogger.error(`Type generation failed: ${errorMessage}`, {
-					scope: 'vite-plugin-error',
-				})
+			if (!success && verbose) {
+				typeLogger.info(
+					'No config directory found, skipping type generation',
+					{
+						scope: 'vite-plugin',
+					},
+				)
 			}
 		},
 
@@ -114,35 +104,22 @@ export const configManagerPlugin = (
 						})
 					}
 
-					try {
-						const reloadOptions: Parameters<
-							typeof autoGenerateTypes
-						>[0] = {
-							configDir,
-							force: true,
-							silent: !verbose,
-						}
-						if (outputFile) {
-							reloadOptions.outputFile = outputFile
-						}
-						await autoGenerateTypes(reloadOptions)
-
-						// Trigger HMR reload
-						server.ws.send({
-							type: 'full-reload',
-						})
-					} catch (error) {
-						const errorMessage =
-							error instanceof Error
-								? error.message
-								: String(error)
-						typeLogger.error(
-							`Hot reload type generation failed: ${errorMessage}`,
-							{
-								scope: 'vite-plugin-hmr-error',
-							},
-						)
+					const reloadOptions: Parameters<
+						typeof autoGenerateTypes
+					>[0] = {
+						configDir,
+						force: true,
+						silent: !verbose,
 					}
+					if (outputFile) {
+						reloadOptions.outputFile = outputFile
+					}
+					await autoGenerateTypes(reloadOptions)
+
+					// Trigger HMR reload
+					server.ws.send({
+						type: 'full-reload',
+					})
 				}
 			})
 

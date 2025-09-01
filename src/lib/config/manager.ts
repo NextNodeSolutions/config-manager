@@ -2,7 +2,6 @@ import { getNestedValue } from '@/lib/utils/helpers.js'
 import { resolveEnvironment } from '@/lib/utils/validation.js'
 import { autoGenerateTypes } from '@/lib/types/generator.js'
 import { ConfigurationPathError } from '@/lib/definitions/errors.js'
-import { configLogger } from '@/lib/utils/logger.js'
 
 import { ConfigLoader } from './loader.js'
 
@@ -49,23 +48,9 @@ export const initConfig = async <TSchema = ConfigSchema>(
 	globalLoader = new ConfigLoader(options)
 
 	// Automatically generate types for the user project (mandatory)
-	try {
-		await autoGenerateTypes(
-			options.configDir ? { configDir: options.configDir } : {},
-		)
-	} catch (error) {
-		const errorMessage =
-			error instanceof Error ? error.message : String(error)
-		configLogger.error(
-			`Type generation failed during initialization: ${errorMessage}`,
-			{
-				scope: 'init-error',
-			},
-		)
-		throw new Error(
-			'Configuration type generation is required but failed during initialization',
-		)
-	}
+	await autoGenerateTypes(
+		options.configDir ? { configDir: options.configDir } : {},
+	)
 }
 
 /**
@@ -125,15 +110,10 @@ export function hasConfig<TPath extends AutoConfigPath>(
 	environment?: string,
 ): boolean
 export function hasConfig(path: string, environment?: string): boolean {
-	try {
-		const value = getNestedValue(
-			ensureGlobalLoader().loadConfig(resolveEnvironment(environment)),
-			path,
-		)
-		return value !== undefined
-	} catch {
-		return false
-	}
+	const loader = ensureGlobalLoader()
+	const config = loader.loadConfig(resolveEnvironment(environment))
+	const value = getNestedValue(config, path)
+	return value !== undefined
 }
 
 /**

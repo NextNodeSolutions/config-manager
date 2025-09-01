@@ -1,6 +1,6 @@
 {
 	"!(src/__tests__/fixtures/configs/generated-types.d.ts|*.config.*)*.{js,jsx,ts,tsx}": [
-		"pnpm lint:fix"
+		"pnpm lint"
 	],
 	"package.json": ["better-sort-package-json"],
 	"*.{js,jsx,ts,tsx,json,jsonc,md,yml}": [

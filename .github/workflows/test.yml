@@ -11,7 +11,7 @@ jobs:
     with:
       run-lint: true
       run-typecheck: true
-      run-test: true
+      run-tests: true
       run-build: true
       test-coverage: true
       node-version: '20'

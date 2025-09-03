@@ -12,7 +12,7 @@ concurrency:
 jobs:
   release:
     name: Release Library
-    uses: NextNodeSolutions/github-actions/.github/workflows/release.yml@feat/centralized-release-workflows
+    uses: NextNodeSolutions/github-actions/.github/workflows/release.yml@main
     with:
       # Environment configuration
       node-version: '20'

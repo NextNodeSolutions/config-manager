@@ -4,7 +4,7 @@
 		"@changesets/changelog-github",
 		{ "repo": "NextNodeSolutions/config-manager" }
 	],
-	"commit": false,
+	"commit": ["./commit.js", { "skipCI": "version" }],
 	"fixed": [],
 	"linked": [],
 	"access": "public",

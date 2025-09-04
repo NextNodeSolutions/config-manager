@@ -1,0 +1,19 @@
+# @nextnode/config-manager
+
+## 3.1.2
+
+### Patch Changes
+
+- [#24](https://github.com/NextNodeSolutions/config-manager/pull/24) [`f27046b`](https://github.com/NextNodeSolutions/config-manager/commit/f27046b76cbb058404b282df92d243e4f37fa2fd) Thanks [@walid-mos](https://github.com/walid-mos)! - Repository structure cleanup and coverage configuration improvements
+
+  - Remove unnecessary documentation files (CHANGELOG.md, README_CHANGESETS.md)
+  - Remove misplaced src/README.md file
+  - Delete unused empty .github-actions directory
+  - Configure Vitest coverage output to src/**tests**/coverage directory
+  - Improve overall project organization and maintainability
+
+- [`4b341fe`](https://github.com/NextNodeSolutions/config-manager/commit/4b341fe8466bf10d924a02ed5d9cc099c22dcf2d) Thanks [@walid-mos](https://github.com/walid-mos)! - Fix automated NPM release workflow
+
+  - Fixed GitHub Actions workflow to properly push version commits
+  - Removed unused updateInternalDependencies configuration
+  - Improved automated release pipeline for seamless NPM publishing

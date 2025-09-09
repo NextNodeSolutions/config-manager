@@ -1,7 +1,7 @@
 name: Publish Release
 
 on:
-  # Listen for version-merged events from version-management workflow
+  # Listen for the version-merged event from version-management workflow
   repository_dispatch:
     types: [version-merged]
 
@@ -19,6 +19,9 @@ jobs:
       publish-script: 'changeset:publish'
       build-script: 'build'
       enable-provenance: true
+      # Event data from repository_dispatch
+      version: ${{ github.event.client_payload.data.version }}
+      pr-number: ${{ github.event.client_payload.data.pr_number }}
+      merge-commit-sha: ${{ github.event.client_payload.data.merge_commit_sha }}
     secrets:
       NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

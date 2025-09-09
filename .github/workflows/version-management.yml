@@ -3,7 +3,7 @@ name: Version Management
 on:
   push:
     branches: [main]
-    # Skip release commits to avoid loops
+    # Skip if this is already a release commit
     paths-ignore:
       - 'CHANGELOG.md'
   workflow_dispatch:
@@ -20,5 +20,4 @@ jobs:
       node-version: '20'
       pnpm-version: '10.11.0'
       version-script: 'changeset:version'
-    secrets:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    secrets: inherit

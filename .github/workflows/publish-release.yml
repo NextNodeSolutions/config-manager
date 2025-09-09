@@ -1,7 +1,7 @@
 name: Publish Release
 
 on:
-  # Listen for the version-merged event from version-management workflow
+  # Listen for version-merged events from version-management workflow
   repository_dispatch:
     types: [version-merged]
 

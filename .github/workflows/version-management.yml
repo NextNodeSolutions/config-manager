@@ -3,7 +3,7 @@ name: Version Management
 on:
   push:
     branches: [main]
-    # Skip if this is already a release commit
+    # Skip release commits to avoid loops
     paths-ignore:
       - 'CHANGELOG.md'
   workflow_dispatch:

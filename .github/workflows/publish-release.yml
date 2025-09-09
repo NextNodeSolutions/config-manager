@@ -1,0 +1,193 @@
+name: Publish Release
+
+on:
+  # Listen for the version-merged event from version-management workflow
+  repository_dispatch:
+    types: [version-merged]
+
+concurrency:
+  group: publish-${{ github.event.client_payload.data.version }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Publish to NPM & Create Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+      id-token: write # Required for npm provenance
+    steps:
+      - name: Debug Event Payload
+        run: |
+          echo "🔍 Repository Dispatch Event Details"
+          echo "Event Type: ${{ github.event.action }}"
+          echo "Version: ${{ github.event.client_payload.data.version }}"
+          echo "PR Number: ${{ github.event.client_payload.data.pr_number }}"
+          echo "Merge Commit: ${{ github.event.client_payload.data.merge_commit_sha }}"
+          echo "Triggered By: ${{ github.event.client_payload.data.triggered_by }}"
+
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          # Checkout the exact merge commit
+          ref: ${{ github.event.client_payload.data.merge_commit_sha }}
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js & pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.11.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Package
+        run: pnpm build
+
+      - name: Verify Package Version
+        run: |
+          PACKAGE_VERSION=$(node -p "require('./package.json').version")
+          EXPECTED_VERSION="${{ github.event.client_payload.data.version }}"
+          
+          if [ "$PACKAGE_VERSION" != "$EXPECTED_VERSION" ]; then
+            echo "❌ Version mismatch!"
+            echo "Package.json version: $PACKAGE_VERSION"
+            echo "Expected version: $EXPECTED_VERSION"
+            exit 1
+          fi
+          
+          echo "✅ Version verified: v$PACKAGE_VERSION"
+
+      - name: Configure Git for Tagging
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Create and Push Git Tag
+        run: |
+          VERSION="${{ github.event.client_payload.data.version }}"
+          TAG_NAME="v$VERSION"
+          
+          # Create annotated tag with release notes
+          git tag -a "$TAG_NAME" -m "Release $TAG_NAME
+
+          Released via automated workflow from PR #${{ github.event.client_payload.data.pr_number }}
+          
+          🚀 Generated with [Claude Code](https://claude.ai/code)"
+          
+          # Push tag
+          git push origin "$TAG_NAME"
+          
+          echo "✅ Created and pushed tag: $TAG_NAME"
+
+      - name: Publish to NPM
+        run: |
+          echo "📦 Publishing @nextnode/config-manager@${{ github.event.client_payload.data.version }} to NPM"
+          pnpm publish --access public --no-git-checks
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Verify NPM Publication
+        run: |
+          VERSION="${{ github.event.client_payload.data.version }}"
+          echo "🔍 Verifying publication..."
+          
+          # Wait a bit for NPM to propagate
+          sleep 10
+          
+          # Check if version is available
+          PUBLISHED_VERSION=$(npm view @nextnode/config-manager version 2>/dev/null || echo "none")
+          
+          if [ "$PUBLISHED_VERSION" = "$VERSION" ]; then
+            echo "✅ Successfully published to NPM: @nextnode/config-manager@$VERSION"
+            echo "🌐 View on NPM: https://www.npmjs.com/package/@nextnode/config-manager/v/$VERSION"
+          else
+            echo "⚠️ NPM publication verification inconclusive"
+            echo "Expected: $VERSION, Found: $PUBLISHED_VERSION"
+            echo "This might be due to NPM propagation delay"
+          fi
+
+      - name: Generate Release Notes
+        id: release-notes
+        run: |
+          VERSION="${{ github.event.client_payload.data.version }}"
+          
+          # Extract changelog section for this version
+          if [ -f "CHANGELOG.md" ]; then
+            # Get the section between ## $VERSION and the next ## or end of file
+            RELEASE_NOTES=$(awk "/^## $VERSION/{flag=1; next} /^## [0-9]/{flag=0} flag" CHANGELOG.md | sed '/^$/d')
+            
+            if [ -n "$RELEASE_NOTES" ]; then
+              echo "Found changelog section for v$VERSION"
+              # Save to file for GitHub Release
+              cat > release-notes.md << EOF
+          ## What's Changed
+
+          $RELEASE_NOTES
+
+          ---
+
+          **Full Changelog**: https://github.com/${{ github.repository }}/compare/v$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "0.0.0")...v$VERSION
+
+          🚀 Generated with [Claude Code](https://claude.ai/code)
+          EOF
+            else
+              echo "No specific changelog found for v$VERSION, using generic notes"
+              cat > release-notes.md << EOF
+          ## What's Changed
+
+          See [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md) for detailed changes.
+
+          **Full Changelog**: https://github.com/${{ github.repository }}/compare/v$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "0.0.0")...v$VERSION
+
+          🚀 Generated with [Claude Code](https://claude.ai/code)
+          EOF
+            fi
+          else
+            echo "No CHANGELOG.md found, using minimal release notes"
+            cat > release-notes.md << EOF
+          ## Release v$VERSION
+
+          **Full Changelog**: https://github.com/${{ github.repository }}/compare/v$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "0.0.0")...v$VERSION
+
+          🚀 Generated with [Claude Code](https://claude.ai/code)
+          EOF
+          fi
+
+      - name: Create GitHub Release
+        run: |
+          VERSION="${{ github.event.client_payload.data.version }}"
+          TAG_NAME="v$VERSION"
+          
+          gh release create "$TAG_NAME" \
+            --title "v$VERSION" \
+            --notes-file release-notes.md \
+            --latest
+          
+          echo "✅ Created GitHub Release: $TAG_NAME"
+          echo "🔗 View release: https://github.com/${{ github.repository }}/releases/tag/$TAG_NAME"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Release Summary
+        run: |
+          VERSION="${{ github.event.client_payload.data.version }}"
+          echo ""
+          echo "🎉 Release v$VERSION completed successfully!"
+          echo ""
+          echo "📦 Package: @nextnode/config-manager@$VERSION"
+          echo "🏷️ Git Tag: v$VERSION"
+          echo "📝 PR: #${{ github.event.client_payload.data.pr_number }}"
+          echo "🌐 NPM: https://www.npmjs.com/package/@nextnode/config-manager/v/$VERSION"
+          echo "🔗 GitHub: https://github.com/${{ github.repository }}/releases/tag/v$VERSION"
+          echo ""
+          echo "✨ Installation: npm install @nextnode/config-manager@$VERSION"

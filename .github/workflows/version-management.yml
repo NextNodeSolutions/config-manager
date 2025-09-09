@@ -1,0 +1,203 @@
+name: Version Management
+
+on:
+  push:
+    branches: [main]
+    # Skip if this is already a release commit
+    paths-ignore:
+      - 'CHANGELOG.md'
+  workflow_dispatch:
+
+concurrency:
+  group: version-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  check-changesets:
+    name: Check for Changesets
+    runs-on: ubuntu-latest
+    outputs:
+      has-changesets: ${{ steps.changesets.outputs.hasChangesets }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Setup Node.js & pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.11.0
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+      
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+      
+      - name: Check for Changesets
+        id: changesets
+        run: |
+          if [ -n "$(ls -A .changeset/*.md 2>/dev/null | grep -v README)" ]; then
+            echo "hasChangesets=true" >> $GITHUB_OUTPUT
+            echo "📦 Found unreleased changesets"
+          else
+            echo "hasChangesets=false" >> $GITHUB_OUTPUT
+            echo "✨ No changesets found"
+          fi
+
+  create-version-pr:
+    name: Create Version PR
+    needs: [check-changesets]
+    if: needs.check-changesets.outputs.has-changesets == 'true'
+    runs-on: ubuntu-latest
+    outputs:
+      pr-created: ${{ steps.create-pr.outputs.pr-created }}
+      pr-number: ${{ steps.create-pr.outputs.pr-number }}
+      version: ${{ steps.create-pr.outputs.version }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Setup Node.js & pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.11.0
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+      
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+      
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+      
+      - name: Create Version PR
+        id: create-pr
+        run: |
+          # Run changesets version to update versions and changelog
+          pnpm changeset version
+          
+          # Check if there are any changes
+          if git diff --quiet; then
+            echo "No version changes were made"
+            echo "pr-created=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          
+          # Get the new version from package.json
+          VERSION=$(node -p "require('./package.json').version")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          
+          # Create a new branch for the version PR
+          BRANCH_NAME="changeset-release/v$VERSION"
+          git checkout -b "$BRANCH_NAME"
+          
+          # Stage and commit changes
+          git add .
+          git commit -m "chore: release v$VERSION"
+          
+          # Push the branch
+          git push origin "$BRANCH_NAME"
+          
+          # Create PR
+          PR_NUMBER=$(gh pr create \
+            --title "v$VERSION" \
+            --body "This PR was automatically generated to release version $VERSION" \
+            --head "$BRANCH_NAME" \
+            --base main \
+            --label "release" \
+            | grep -o '#[0-9]*' | tr -d '#')
+          
+          echo "pr-created=true" >> $GITHUB_OUTPUT
+          echo "pr-number=$PR_NUMBER" >> $GITHUB_OUTPUT
+          echo "🎉 Created version PR #$PR_NUMBER for v$VERSION"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  auto-merge-pr:
+    name: Auto-merge Version PR
+    needs: [create-version-pr]
+    if: needs.create-version-pr.outputs.pr-created == 'true'
+    runs-on: ubuntu-latest
+    outputs:
+      merged: ${{ steps.merge.outputs.merged }}
+      merge-commit-sha: ${{ steps.merge.outputs.merge-commit-sha }}
+    steps:
+      - name: Auto-merge PR
+        id: merge
+        run: |
+          PR_NUMBER="${{ needs.create-version-pr.outputs.pr-number }}"
+          
+          # Enable auto-merge
+          gh pr merge $PR_NUMBER --auto --merge --delete-branch
+          
+          # Wait for merge (with timeout)
+          echo "⏳ Waiting for PR #$PR_NUMBER to be merged..."
+          for i in {1..30}; do
+            STATUS=$(gh pr view $PR_NUMBER --json state --jq '.state')
+            if [ "$STATUS" = "MERGED" ]; then
+              echo "✅ PR #$PR_NUMBER successfully merged"
+              MERGE_SHA=$(gh pr view $PR_NUMBER --json mergeCommit --jq '.mergeCommit.oid')
+              echo "merged=true" >> $GITHUB_OUTPUT
+              echo "merge-commit-sha=$MERGE_SHA" >> $GITHUB_OUTPUT
+              break
+            fi
+            echo "Waiting... (attempt $i/30)"
+            sleep 10
+          done
+          
+          # Check final status
+          FINAL_STATUS=$(gh pr view $PR_NUMBER --json state --jq '.state')
+          if [ "$FINAL_STATUS" != "MERGED" ]; then
+            echo "❌ PR merge failed or timed out"
+            echo "merged=false" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  trigger-release:
+    name: Trigger Release Workflow
+    needs: [create-version-pr, auto-merge-pr]
+    if: needs.auto-merge-pr.outputs.merged == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Release Event
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          event-type: version-merged
+          client-payload: |
+            {
+              "data": {
+                "version": "${{ needs.create-version-pr.outputs.version }}",
+                "pr_number": "${{ needs.create-version-pr.outputs.pr-number }}",
+                "merge_commit_sha": "${{ needs.auto-merge-pr.outputs.merge-commit-sha }}",
+                "triggered_by": "${{ github.actor }}",
+                "repository": "${{ github.repository }}",
+                "ref": "${{ github.ref }}",
+                "sha": "${{ github.sha }}"
+              }
+            }
+      
+      - name: Success Summary
+        run: |
+          echo "🎉 Version management completed successfully!"
+          echo "📦 Version: ${{ needs.create-version-pr.outputs.version }}"
+          echo "🔀 PR: #${{ needs.create-version-pr.outputs.pr-number }}"
+          echo "📝 Merge commit: ${{ needs.auto-merge-pr.outputs.merge-commit-sha }}"
+          echo "🚀 Release workflow triggered"

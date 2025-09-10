@@ -2,6 +2,8 @@
 
 A powerful TypeScript configuration management library with **automatic type generation** from your JSON config files. Provides flexible, environment-aware configuration loading with intelligent type inference, eliminating the need for manual type annotations.
 
+> **Latest updates**: All dependencies updated to latest versions including Vite 7.x, TypeScript 5.9, and Biome 2.x with full compatibility maintained.
+
 ## ✨ Key Features
 
 ### 🚀 Automatic Type Generation

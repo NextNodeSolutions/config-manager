@@ -1,5 +1,15 @@
 # @nextnode/config-manager
 
+## 3.1.4
+
+### Patch Changes
+
+- [#31](https://github.com/NextNodeSolutions/config-manager/pull/31) [`bf718cd`](https://github.com/NextNodeSolutions/config-manager/commit/bf718cd44c27bf820ebf5d33e1b2d35e77e12f9f) Thanks [@walid-mos](https://github.com/walid-mos)! - Update README with latest dependency versions info
+
+  Added note about recent dependency updates including Vite 7.x, TypeScript 5.9, and Biome 2.x to highlight compatibility with latest tooling.
+
+  This changeset also serves as a test for the fixed automated release workflow.
+
 ## 3.1.3
 
 ### Patch Changes

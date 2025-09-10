@@ -1,6 +1,6 @@
 {
   "name": "@nextnode/config-manager",
-  "version": "3.1.3",
+  "version": "3.1.4",
   "description": "A TypeScript configuration management library with automatic type generation from JSON config files. Provides environment-aware configuration loading with intelligent type inference.",
   "keywords": [
     "auto-generation",

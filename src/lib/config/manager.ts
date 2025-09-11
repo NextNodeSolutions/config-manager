@@ -1,16 +1,16 @@
+import { ConfigurationPathError } from '@/lib/definitions/errors.js'
+import { autoGenerateTypes } from '@/lib/types/generator.js'
 import { getNestedValue } from '@/lib/utils/helpers.js'
 import { resolveEnvironment } from '@/lib/utils/validation.js'
-import { autoGenerateTypes } from '@/lib/types/generator.js'
-import { ConfigurationPathError } from '@/lib/definitions/errors.js'
 
 import { ConfigLoader } from './loader.js'
 
 import type {
-	ConfigOptions,
-	PathValue,
-	DetectedConfigType,
 	AutoConfigPath,
+	ConfigOptions,
 	ConfigSchema,
+	DetectedConfigType,
+	PathValue,
 } from '@/lib/definitions/types.js'
 
 // Global configuration loader instance

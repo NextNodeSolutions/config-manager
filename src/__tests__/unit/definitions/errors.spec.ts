@@ -1,17 +1,17 @@
-import { describe, it, expect } from 'vitest'
+import { describe, expect, it } from 'vitest'
 
+import { ERROR_CODES } from '@/lib/definitions/constants.js'
 import {
-	ConfigError,
-	ConfigNotFoundError,
-	InvalidEnvironmentError,
-	InvalidConfigFormatError,
-	InvalidJsonSyntaxError,
-	DefaultConfigMissingError,
 	AppEnvRequiredError,
 	AppEnvUnavailableError,
 	ConfigDirNotFoundError,
+	ConfigError,
+	ConfigNotFoundError,
+	DefaultConfigMissingError,
+	InvalidConfigFormatError,
+	InvalidEnvironmentError,
+	InvalidJsonSyntaxError,
 } from '@/lib/definitions/errors.js'
-import { ERROR_CODES } from '@/lib/definitions/constants.js'
 
 describe('ConfigError', () => {
 	it('should create error with message and code', () => {

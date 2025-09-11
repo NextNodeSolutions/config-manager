@@ -5,13 +5,13 @@
  * This script reads JSON config files and creates precise TypeScript types
  */
 
-import { existsSync, mkdirSync, writeFileSync, readFileSync } from 'node:fs'
 import { createHash } from 'node:crypto'
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname } from 'node:path'
 
 import {
-	generateConfigTypes,
 	autoGenerateTypes,
+	generateConfigTypes,
 } from '../lib/types/generator.js'
 import { cliLogger } from '../lib/utils/logger.js'
 

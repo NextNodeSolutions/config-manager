@@ -1,9 +1,9 @@
-import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
-import { writeFileSync, mkdirSync, rmSync } from 'node:fs'
-import { join } from 'node:path'
+import { mkdirSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
 
-import { initConfig, getConfig } from '@/index.js'
+import { getConfig, initConfig } from '@/index.js'
 import { generateConfigTypes } from '@/lib/types/generator.js'
 
 describe('Configuration Consistency Between Environments', () => {

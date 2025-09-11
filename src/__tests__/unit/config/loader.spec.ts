@@ -1,14 +1,14 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { mkdirSync, writeFileSync, rmSync, existsSync } from 'fs'
-import { join } from 'path'
+import { existsSync, mkdirSync, rmSync, writeFileSync } from 'fs'
 import { tmpdir } from 'os'
+import { join } from 'path'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { ConfigLoader } from '@/lib/config/loader.js'
 import {
+	ConfigDirNotFoundError,
 	DefaultConfigMissingError,
 	InvalidConfigFormatError,
 	InvalidJsonSyntaxError,
-	ConfigDirNotFoundError,
 } from '@/lib/definitions/errors.js'
 
 import type { ConfigOptions, ConfigValue } from '@/lib/definitions/types.js'

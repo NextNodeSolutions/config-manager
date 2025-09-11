@@ -1,8 +1,8 @@
-import { VALID_ENVIRONMENTS, ENV_VARS } from '../definitions/constants.js'
+import { ENV_VARS, VALID_ENVIRONMENTS } from '../definitions/constants.js'
 import {
-	InvalidEnvironmentError,
 	AppEnvRequiredError,
 	AppEnvUnavailableError,
+	InvalidEnvironmentError,
 } from '../definitions/errors.js'
 
 import type { ConfigObject } from '../definitions/types.js'

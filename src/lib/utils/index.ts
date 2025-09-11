@@ -3,9 +3,9 @@
  */
 
 export { deepMerge, getNestedValue, setNestedValue } from './helpers.js'
+export { cliLogger, configLogger, logger, typeLogger } from './logger.js'
 export {
-	validateConfig,
 	getCurrentEnvironment,
 	resolveEnvironment,
+	validateConfig,
 } from './validation.js'
-export { logger, typeLogger, configLogger, cliLogger } from './logger.js'

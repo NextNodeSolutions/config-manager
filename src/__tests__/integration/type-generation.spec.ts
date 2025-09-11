@@ -1,14 +1,15 @@
-import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
-import { writeFileSync, mkdirSync, rmSync } from 'node:fs'
-import { join } from 'node:path'
+import { mkdirSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
 
-import { generateConfigTypes } from '@/lib/types/generator.js'
 import { getConfig, initConfig } from '@/index.js'
+import { generateConfigTypes } from '@/lib/types/generator.js'
 
-// Import generated types for precise type inference validation
 import type { GeneratedConfigSchema } from '@/__tests__/fixtures/configs/generated-types.d.ts'
-import type { PathValue, AutoConfigPath } from '@/lib/definitions/types.js'
+// Import generated types for precise type inference validation
+import type { AutoConfigPath, PathValue } from '@/lib/definitions/types.js'
+
 
 describe('Type Generation', () => {
 	let tempDir: string

@@ -1,19 +1,19 @@
-import { describe, it, expect, afterEach, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
+import {
+	AppEnvRequiredError,
+	AppEnvUnavailableError,
+	InvalidEnvironmentError,
+} from '@/lib/definitions/errors.js'
 import {
 	deepMerge,
 	getNestedValue,
 	setNestedValue,
 } from '@/lib/utils/helpers.js'
 import {
-	validateConfig,
 	getCurrentEnvironment,
+	validateConfig,
 } from '@/lib/utils/validation.js'
-import {
-	InvalidEnvironmentError,
-	AppEnvRequiredError,
-	AppEnvUnavailableError,
-} from '@/lib/definitions/errors.js'
 
 import type { ConfigObject, ConfigValue } from '@/lib/definitions/types.js'
 

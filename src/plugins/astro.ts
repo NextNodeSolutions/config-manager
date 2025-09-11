@@ -2,7 +2,7 @@
  * Astro integration for automatic config type generation
  */
 
-import { configManagerPlugin, type ConfigManagerPluginOptions } from './vite.js'
+import { type ConfigManagerPluginOptions, configManagerPlugin } from './vite.js'
 
 // Astro types - declared here to avoid dependency on astro
 interface AstroConfig {
@@ -40,7 +40,9 @@ export const configManagerIntegration = (
 		hooks: {
 			'astro:config:setup': ({
 				updateConfig,
-			}: { updateConfig: (config: AstroConfig) => void }): void => {
+			}: {
+				updateConfig: (config: AstroConfig) => void
+			}): void => {
 				updateConfig({
 					vite: {
 						plugins: [configManagerPlugin(pluginOptions)],

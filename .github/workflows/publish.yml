@@ -20,6 +20,7 @@ jobs:
       contents: write
       id-token: write
       actions: read
+      packages: write
     with:
       node-version: '20'
       pnpm-version: '10.11.0'

@@ -1,4 +1,4 @@
-name: Release (Centralized)
+name: Release
 
 on:
   push:
@@ -10,42 +10,46 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  release:
-    name: Release Library
-    uses: NextNodeSolutions/github-actions/.github/workflows/release.yml@main
+  version-management:
+    name: Version Management
+    uses: NextNodeSolutions/github-actions/.github/workflows/version-management.yml@main
     with:
-      # Environment configuration
       node-version: '20'
       pnpm-version: '10.11.0'
-      
-      # Quality checks (config-manager specific)
-      run-quality-checks: true
-      run-lint: true
-      run-typecheck: true
-      run-tests: true
-      run-build: true
-      test-coverage: false
-      
-      # Release configuration
       version-script: 'changeset:version'
+      auto-merge: true
+    secrets:
+      GITHUB_TOKEN: ${{ secrets.CHANGESET_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
+
+  publish-release:
+    name: Publish Release
+    needs: [version-management]
+    if: needs.version-management.outputs.merged == 'true'
+    uses: NextNodeSolutions/github-actions/.github/workflows/publish-release.yml@main
+    with:
+      node-version: '20'
+      pnpm-version: '10.11.0'
       publish-script: 'changeset:publish'
+      build-script: 'build'
       enable-provenance: true
       dry-run: false
-      
+      create-github-release: true
+      version: ${{ needs.version-management.outputs.version }}
+      pr-number: ${{ needs.version-management.outputs.pr-number }}
     secrets:
       NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-      CHANGESET_GITHUB_TOKEN: ${{ secrets.CHANGESET_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
+      GITHUB_TOKEN: ${{ secrets.CHANGESET_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
 
   # Optional: Custom post-release steps specific to config-manager
   post-release:
     name: Post-Release Tasks
-    needs: [release]
-    if: needs.release.outputs.published == 'true'
+    needs: [version-management, publish-release]
+    if: needs.publish-release.outputs.published == 'true'
     runs-on: ubuntu-latest
     
     steps:
       - name: Announce Release
         run: |
-          echo "🎉 @nextnode/config-manager@${{ needs.release.outputs.version }} has been released!"
+          echo "🎉 @nextnode/config-manager@${{ needs.version-management.outputs.version }} has been released!"
           echo "📦 NPM: https://www.npmjs.com/package/@nextnode/config-manager"
-          echo "🔍 Published packages: ${{ needs.release.outputs.packages }}"
+          echo "🔗 GitHub Release: ${{ needs.publish-release.outputs.release-url }}"

@@ -8,7 +8,8 @@
 			"**/*.tsx",
 			"**/*.json",
 			"**/*.md",
-			"**/*.yml"
+			"**/*.yml",
+			"!src/__tests__/fixtures/configs/invalid.json"
 		],
 		"ignoreUnknown": true
 	},

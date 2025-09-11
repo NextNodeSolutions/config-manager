@@ -2,8 +2,8 @@
  * Build tool plugins and integrations
  */
 
-export { configManagerPlugin, type ConfigManagerPluginOptions } from './vite.js'
 export {
-	configManagerIntegration,
 	type AstroConfigManagerOptions,
+	configManagerIntegration,
 } from './astro.js'
+export { type ConfigManagerPluginOptions, configManagerPlugin } from './vite.js'

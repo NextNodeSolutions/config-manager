@@ -3,7 +3,7 @@
 		"pnpm lint"
 	],
 	"package.json": ["better-sort-package-json"],
-	"*.{js,jsx,ts,tsx,json,jsonc,md,yml}": [
+	"!(!src/__tests__/fixtures/configs/invalid.json)*": [
 		"biome check --write --no-errors-on-unmatched --staged"
 	]
 }

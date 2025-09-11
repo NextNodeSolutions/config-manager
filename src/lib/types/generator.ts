@@ -1,16 +1,16 @@
+import { createHash } from 'node:crypto'
 import {
-	readFileSync,
-	writeFileSync,
-	readdirSync,
 	existsSync,
 	mkdirSync,
+	readdirSync,
+	readFileSync,
 	statSync,
+	writeFileSync,
 } from 'node:fs'
-import { join, extname, basename, dirname, relative, resolve } from 'node:path'
-import { createHash } from 'node:crypto'
+import { basename, dirname, extname, join, relative, resolve } from 'node:path'
 
-import { smartArrayUnionType } from './inference.js'
 import { typeLogger } from '../utils/logger.js'
+import { smartArrayUnionType } from './inference.js'
 
 interface AutoTypeOptions {
 	configDir?: string

@@ -3,21 +3,21 @@
  */
 
 export {
-	generateConfigTypes,
 	autoGenerateTypes,
+	generateConfigTypes,
 	resetAutoGeneration,
 } from './generator.js'
 
 export {
-	isPlainObject,
-	escapeStringLiteral,
-	valueToLiteralType,
 	arrayToType,
-	createUnionType,
-	collectPropertyValues,
-	getConfigPaths,
-	validateConfigurationConsistency,
-	generateInterfaceProperties,
-	formatModuleDeclaration,
 	type ConsistencyValidationResult,
+	collectPropertyValues,
+	createUnionType,
+	escapeStringLiteral,
+	formatModuleDeclaration,
+	generateInterfaceProperties,
+	getConfigPaths,
+	isPlainObject,
+	validateConfigurationConsistency,
+	valueToLiteralType,
 } from './inference.js'

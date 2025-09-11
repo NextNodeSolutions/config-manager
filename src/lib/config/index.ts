@@ -4,11 +4,11 @@
 
 export { ConfigLoader } from './loader.js'
 export {
-	initConfig,
-	getConfig,
-	hasConfig,
-	getEnvironment,
 	clearConfigCache,
 	getAvailableEnvironments,
+	getConfig,
+	getEnvironment,
+	hasConfig,
+	initConfig,
 	validateRequiredConfig,
 } from './manager.js'

@@ -1,21 +1,21 @@
-import { readFileSync, existsSync, readdirSync } from 'fs'
+import { existsSync, readdirSync, readFileSync } from 'fs'
 import { join } from 'path'
 
-import { deepMerge } from '@/lib/utils/helpers.js'
 import {
-	validateConfig,
-	getCurrentEnvironment,
-} from '@/lib/utils/validation.js'
-import {
-	FILE_EXTENSIONS,
 	CONFIG_CACHE_PREFIX,
+	FILE_EXTENSIONS,
 } from '@/lib/definitions/constants.js'
 import {
+	ConfigDirNotFoundError,
 	DefaultConfigMissingError,
 	InvalidConfigFormatError,
 	InvalidJsonSyntaxError,
-	ConfigDirNotFoundError,
 } from '@/lib/definitions/errors.js'
+import { deepMerge } from '@/lib/utils/helpers.js'
+import {
+	getCurrentEnvironment,
+	validateConfig,
+} from '@/lib/utils/validation.js'
 
 import type { ConfigObject, ConfigOptions } from '@/lib/definitions/types.js'
 

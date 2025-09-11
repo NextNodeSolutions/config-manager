@@ -1,17 +1,17 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { join, dirname } from 'path'
+import { dirname, join } from 'path'
 import { fileURLToPath } from 'url'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 // Import generated types for precise type inference in tests
 import '@/__tests__/fixtures/configs/generated-types.d.ts'
 
 import {
-	initConfig,
-	getConfig,
-	hasConfig,
-	getEnvironment,
 	clearConfigCache,
 	getAvailableEnvironments,
+	getConfig,
+	getEnvironment,
+	hasConfig,
+	initConfig,
 	validateRequiredConfig,
 } from '@/index.js'
 

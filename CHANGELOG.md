@@ -1,5 +1,17 @@
 # @nextnode/config-manager
 
+## 3.1.4
+
+### Patch Changes
+
+- [#40](https://github.com/NextNodeSolutions/config-manager/pull/40) [`7ae513c`](https://github.com/NextNodeSolutions/config-manager/commit/7ae513c11bc4dae647d1710075da97060418928e) Thanks [@walid-mos](https://github.com/walid-mos)! - Remove redundant workflow architecture and add manual publish recovery
+
+  - Remove publish.yml workflow that was redundant with centralized github-actions repository_dispatch
+  - Remove post-release.yml workflow that is no longer needed
+  - Add manual-publish.yml workflow for recovery when automated publish fails
+  - Eliminates double-triggering of publish workflows
+  - Follows centralized workflow architecture pattern
+
 ## 3.1.3
 
 ### Patch Changes

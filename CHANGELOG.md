@@ -1,5 +1,11 @@
 # @nextnode/config-manager
 
+## 3.1.3
+
+### Patch Changes
+
+- [#33](https://github.com/NextNodeSolutions/config-manager/pull/33) [`e278fc4`](https://github.com/NextNodeSolutions/config-manager/commit/e278fc4ce615bb33e7c45ecffa662cbf3b74ff04) Thanks [@walid-mos](https://github.com/walid-mos)! - fix: update release workflow to use modular GitHub Actions
+
 ## 3.1.2
 
 ### Patch Changes

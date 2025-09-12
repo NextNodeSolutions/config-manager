@@ -1,20 +1,21 @@
-name: Publish Release
+name: Manual Publish
 
 on:
-  workflow_run:
-    workflows: ["Version Management"]
-    types: [completed]
-    branches: [main]
   workflow_dispatch:
+    inputs:
+      dry-run:
+        description: 'Run in dry-run mode (no actual publishing)'
+        required: false
+        default: false
+        type: boolean
 
 concurrency:
-  group: publish-${{ github.ref }}
+  group: manual-publish-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
-  publish-release:
-    name: Publish Release
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+  manual-publish:
+    name: Manual Publish Recovery
     uses: NextNodeSolutions/github-actions/.github/workflows/publish-release.yml@main
     permissions:
       contents: write
@@ -27,7 +28,7 @@ jobs:
       publish-script: 'changeset:publish'
       build-script: 'build'
       enable-provenance: true
-      dry-run: false
+      dry-run: ${{ inputs.dry-run }}
       create-github-release: true
     secrets:
       NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
